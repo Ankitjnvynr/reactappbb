@@ -23,7 +23,8 @@ const LoginScreen = () => {
   };
 
   const handleAppleButtonPress = () => {
-    Alert.alert('Apple Login', 'Apple Sign-In functionality not yet implemented.');
+    // Alert.alert('Apple Login', 'Apple Sign-In functionality not yet implemented.');
+    Alert.prompt('are you sure to' ,'yeh sure')
   };
 
   return (
