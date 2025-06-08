@@ -1,17 +1,22 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
   Alert,
   ImageBackground,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const backgroundImage = require('@/assets/images/abc.jpg'); // Make sure the path is correct
 
 const LoginScreen = () => {
+
+  const router = useRouter()
+
   const handleGoogleButtonPress = () => {
+    router.push('/(tabs)')
     Alert.alert('Google Login', 'Google Sign-In functionality not yet implemented.');
   };
 

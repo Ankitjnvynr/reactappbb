@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const options = [
   { label: 'Search name in voter list', icon: '👤' },
@@ -27,7 +27,7 @@ const ElectionApp = () => {
       </View>
 
      <Image
-  source={require('../../assets/bihar-footer.jpg')}
+  source={require('../assets/images/abc.jpg')}
   style={styles.footerImage}
   resizeMode="cover"
 />
