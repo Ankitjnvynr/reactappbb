@@ -13,7 +13,7 @@ const ProfileScreen = () => {
   const router =useRouter()
 
   const Logout = async ()=>{
-    router.replace('/')
+    router.replace('/login')
   }
   const options = [
     { icon: 'favorite', label: 'Favourites' },
