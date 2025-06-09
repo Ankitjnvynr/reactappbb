@@ -6,7 +6,7 @@ export default function TabTwoScreen() {
   return (
    
    <>
-   <Election/>
+   {/* <Election/> */}
    </>
   );
 }
