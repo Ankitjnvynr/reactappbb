@@ -1,89 +1,168 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
-const options = [
-  { label: 'Search name in voter list', icon: '👤' },
-  { label: 'Know your constituency', icon: '🗂️' },
-  { label: 'Enroll online', icon: '📝' },
-  { label: 'Know your Election Officers', icon: '👨‍💼' },
-  { label: 'Know your BLO', icon: '👥' },
-  { label: 'FAQ', icon: '❓' },
-  { label: 'Navigate to your polling station', icon: '🗳️' },
-  { label: 'Navigate to your Voter Center', icon: '📍' },
+const width = Dimensions.get('window').width;
+
+// ✅ Hosted images via URI (replace with your actual links)
+const sectionImages = [
+  { title: '👤 Search name in voter list', image: { uri: 'https://example.com/images/1.png' } },
+  { title: '🗂️ Know your constituency', image: { uri: 'https://example.com/images/2.png' } },
+  { title: '📝 Enroll online', image: { uri: 'https://example.com/images/3.png' } },
+  { title: '👨‍💼 Know your Election Officers', image: { uri: 'https://example.com/images/4.png' } },
+  { title: '👥 Know your BLO', image: { uri: 'https://example.com/images/5.png' } },
+  { title: '❓ FAQ', image: { uri: 'https://example.com/images/6.png' } },
+];
+
+const carouselImages = [
+  { uri: 'https://example.com/images/banner1.png' },
+  { uri: 'https://example.com/images/banner2.png' },
+  { uri: 'https://example.com/images/banner3.png' },
 ];
 
 const ElectionApp = () => {
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Chief Electoral Officer, Bihar</Text>
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.deliveryTime}>Bihar Election</Text>
+          <Text style={styles.location}>Urban Estate, Patna ▼</Text>
+        </View>
 
-      <View style={styles.grid}>
-        {options.map((item, idx) => (
-          <View key={idx} style={styles.card}>
-            <Text style={styles.icon}>{item.icon}</Text>
-            <Text style={styles.label}>{item.label}</Text>
-          </View>
-        ))}
-      </View>
+        {/* Search */}
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={20} color="#1E3A8A" style={styles.searchIcon} />
+          <TextInput
+            placeholder='Search "voter"'
+            placeholderTextColor="#1E3A8A"
+            style={styles.input}
+          />
+          <Ionicons name="mic" size={20} color="#1E3A8A" />
+        </View>
 
-     <Image
-  source={require('../assets/images/abc.jpg')}
-  style={styles.footerImage}
-  resizeMode="cover"
-/>
+        {/* Services Grid */}
+        <Text style={styles.sectionTitle}>Know Your Constituency</Text>
+        <View style={styles.grid}>
+          {sectionImages.map((item, idx) => (
+            <TouchableOpacity key={idx} style={styles.card} activeOpacity={0.8}>
+              <Image source={item.image} style={styles.cardImage} resizeMode="contain" />
+              <Text style={styles.cardText}>{item.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <Text style={styles.footerText}>www.ceobihar.gov.in | Help</Text>
-    </ScrollView>
+        {/* Carousel */}
+        <Text style={styles.sectionTitle}>Latest Announcements</Text>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          style={styles.carouselContainer}
+        >
+          {carouselImages.map((img, idx) => (
+            <Image key={idx} source={img} style={styles.carouselImage} />
+          ))}
+        </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#87CEFA',
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+
   header: {
-    backgroundColor: '#3f51b5',
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    padding: 16,
+    backgroundColor: '#1E3A8A',
+    paddingVertical: 35,
+    paddingHorizontal: 20,
+    alignItems: 'flex-start',
   },
+  deliveryTime: {
+    fontWeight: 'bold',
+    fontSize: 13,
+    color: '#FFFFFF',
+  },
+  location: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+
+  searchBox: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#1E3A8A',
+    borderWidth: 1.5,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1E3A8A',
+  },
+
+  sectionTitle: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 10,
+    color: '#1E3A8A',
+  },
+
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    padding: 10,
+    paddingBottom: 20,
   },
   card: {
-    width: Dimensions.get('window').width / 2 - 30,
-    margin: 10,
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    width: width / 2 - 28,
+    margin: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    padding: 12,
+    borderColor: '#1E3A8A',
+    borderWidth: 1,
   },
-  icon: {
-    fontSize: 28,
+  cardImage: {
+    width: width * 0.25,
+    height: width * 0.25,
     marginBottom: 8,
   },
-  label: {
-    textAlign: 'center',
+  cardText: {
     fontSize: 13,
-  },
-  footerImage: {
-    width: '100%',
-    height: 120,
-  },
-  footerText: {
     textAlign: 'center',
-    fontSize: 12,
-    marginVertical: 10,
+    color: '#1E3A8A',
+  },
+
+  carouselContainer: {
+    marginBottom: 30,
+  },
+  carouselImage: {
+    width: width - 32,
+    height: 160,
+    marginHorizontal: 16,
+    borderRadius: 12,
   },
 });
 
