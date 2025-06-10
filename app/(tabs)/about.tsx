@@ -22,7 +22,7 @@ const data = [
   { title: 'Bihar in Freedom Struggle' },
 ];
 
-const Tile = ({ item }) => (
+const Tile = ({ item }:any) => (
   <TouchableOpacity style={styles.tile}>
     <Text style={styles.title}>{item.title}</Text>
   </TouchableOpacity>
