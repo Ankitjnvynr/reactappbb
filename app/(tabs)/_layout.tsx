@@ -1,6 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, ActivityIndicator, View } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -10,23 +10,34 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabLayout() {
-  const[isLoading,setIsLoading]= useState(false)
-  const router = useRouter()
-  const checkIsLogin = async ()=>{
-    setIsLoading(true)
-    const token = await AsyncStorage.getItem('token')
-    if(!token){
-      router.replace('/login')
-    }
-    setIsLoading(false)
-  }
+  const [isLoading, setIsLoading] = useState(true); // default to true to prevent flicker
+  const router = useRouter();
   const colorScheme = useColorScheme();
 
-  useEffect(()=>{
-    checkIsLogin()
-  },[])
+  const checkIsLogin = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        router.replace('/login');
+      }
+    } catch (error) {
+      console.warn('Login check error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  if(isLoading) return null
+  useEffect(() => {
+    checkIsLogin();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <Tabs
@@ -37,41 +48,48 @@ export default function TabLayout() {
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
           default: {},
         }),
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="house.fill" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="paperplane.fill" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="about"
         options={{
-          title: 'about',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          title: 'About',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="info.circle.fill" color={color} />
+          ),
         }}
       />
-       <Tabs.Screen
+      <Tabs.Screen
         name="me"
         options={{
-          title: 'me',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          title: 'Me',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.fill" color={color} />
+          ),
         }}
       />
-      
     </Tabs>
   );
 }
