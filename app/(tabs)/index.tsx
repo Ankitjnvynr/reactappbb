@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 
 import Election from '@/components/Election';
-import Front from '@/components/Front';
+import Map from '@/components/home2/Map';
 
 export default function TabTwoScreen() {
   return (
    
    <>
    {/* <Election/> */}
-   <Front/>
+   <Map/>
    </>
   );
 }

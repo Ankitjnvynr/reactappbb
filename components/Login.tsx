@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -15,13 +16,15 @@ const LoginScreen = () => {
 
   const router = useRouter()
 
-  const handleGoogleButtonPress = () => {
-    router.push('/(tabs)')
-    Alert.alert('Google Login', 'Google Sign-In functionality not yet implemented.');
+  const handleGoogleButtonPress = async () => {
+    const token = await AsyncStorage.setItem('token','tokenValue');
+    router.replace('/(tabs)')
+    // Alert.alert('Google Login', 'Google Sign-In functionality not yet implemented.');
   };
 
   const handleAppleButtonPress = () => {
-    Alert.alert('Apple Login', 'Apple Sign-In functionality not yet implemented.');
+    // Alert.alert('Apple Login', 'Apple Sign-In functionality not yet implemented.');
+    Alert.prompt('are you sure to' ,'yeh sure')
   };
 
   return (

@@ -1,7 +1,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const ProfileScreen = () => {
   const user = {
@@ -10,20 +10,24 @@ const ProfileScreen = () => {
     avatar: 'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&q=80',
   };
 
-  const router =useRouter()
+  const router = useRouter()
 
-  const Logout = async ()=>{
-    router.replace('/login')
+  const Logout = async () => {
+    Alert.alert('Logout', 'Are you sure to logout?', [{ text: 'No', style: 'cancel' }, {
+      text: 'Yes',
+      onPress: async () => {
+        // Do any cleanup (e.g. clearing tokens) here
+        router.replace('/login');
+      },
+    },])
+    // router.replace('/login')
   }
   const options = [
     { icon: 'favorite', label: 'Favourites' },
     { icon: 'file-download', label: 'Downloads' },
-    { icon: 'language', label: 'Language' },
     { icon: 'location-on', label: 'Location' },
-    { icon: 'subscriptions', label: 'Subscription' },
-    { icon: 'cached', label: 'Clear Cache' },
     { icon: 'history', label: 'Clear History' },
-    { icon: 'logout', label: 'Logout', onpress:Logout },
+    { icon: 'logout', label: 'Logout', onpress: Logout },
   ];
 
   return (
@@ -40,7 +44,7 @@ const ProfileScreen = () => {
 
       <View style={styles.optionList}>
         {options.map((item, index) => (
-            
+
           <TouchableOpacity key={index} style={styles.optionItem} onPress={item?.onpress} activeOpacity={0.7}>
             <MaterialIcons name={item.icon} size={24} color="#6b7280" />
             <Text style={styles.optionText}>{item.label}</Text>

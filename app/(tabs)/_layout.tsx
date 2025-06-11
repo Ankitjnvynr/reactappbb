@@ -1,5 +1,5 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
@@ -7,9 +7,26 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabLayout() {
+  const[isLoading,setIsLoading]= useState(false)
+  const router = useRouter()
+  const checkIsLogin = async ()=>{
+    setIsLoading(true)
+    const token = await AsyncStorage.getItem('token')
+    if(!token){
+      router.replace('/login')
+    }
+    setIsLoading(false)
+  }
   const colorScheme = useColorScheme();
+
+  useEffect(()=>{
+    checkIsLogin()
+  },[])
+
+  if(isLoading) return null
 
   return (
     <Tabs
