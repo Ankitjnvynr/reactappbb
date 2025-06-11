@@ -1,12 +1,14 @@
 import { StyleSheet } from 'react-native';
 
 import Election from '@/components/Election';
+import Front from '@/components/Front';
 
 export default function TabTwoScreen() {
   return (
    
    <>
    {/* <Election/> */}
+   <Front/>
    </>
   );
 }
