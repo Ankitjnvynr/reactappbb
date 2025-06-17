@@ -72,7 +72,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="about"
         options={{
           title: 'About',
@@ -80,7 +80,7 @@ export default function TabLayout() {
             <IconSymbol size={28} name="info.circle.fill" color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="me"
         options={{

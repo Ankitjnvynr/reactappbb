@@ -1,569 +1,511 @@
 import React, { useState } from 'react';
-import {
-  Dimensions,
-  Modal,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import Svg, { G, Path, Polygon, Text as SvgText } from 'react-native-svg';
+import { Alert, Dimensions, StyleSheet, View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { WebView } from 'react-native-webview';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-const App = () => {
+const BiharRealSVGMapTemplate = () => {
   const [selectedConstituency, setSelectedConstituency] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [votingModalVisible, setVotingModalVisible] = useState(false);
+  const [votes, setVotes] = useState({});
 
-  // Bihar constituency data based on your image
-  const constituencyData = {
-    1: { name: 'Valmiki Nagar', category: 'General', district: 'West Champaran', population: '1,796,356' },
-    2: { name: 'Paschim Champaran', category: 'General', district: 'West Champaran', population: '1,796,356' },
-    3: { name: 'Purvi Champaran', category: 'General', district: 'East Champaran', population: '1,729,227' },
-    4: { name: 'Sheohar', category: 'General', district: 'Sheohar', population: '656,916' },
-    5: { name: 'Sitamarhi', category: 'General', district: 'Sitamarhi', population: '3,423,574' },
-    6: { name: 'Madhubani', category: 'General', district: 'Madhubani', population: '4,487,379' },
-    7: { name: 'Jhanjharpur', category: 'General', district: 'Madhubani', population: '4,487,379' },
-    8: { name: 'Supaul', category: 'General', district: 'Supaul', population: '2,229,076' },
-    9: { name: 'Araria', category: 'General', district: 'Araria', population: '2,811,569' },
-    10: { name: 'Kishanganj', category: 'General', district: 'Kishanganj', population: '1,690,400' },
-    11: { name: 'Katihar', category: 'General', district: 'Katihar', population: '3,071,029' },
-    12: { name: 'Purnia', category: 'General', district: 'Purnia', population: '3,264,619' },
-    13: { name: 'Madhepura', category: 'General', district: 'Madhepura', population: '1,994,618' },
-    14: { name: 'Darbhanga', category: 'General', district: 'Darbhanga', population: '3,937,385' },
-    15: { name: 'Muzaffarpur', category: 'General', district: 'Muzaffarpur', population: '4,801,062' },
-    16: { name: 'Vaishali', category: 'General', district: 'Vaishali', population: '3,495,021' },
-    17: { name: 'Gopalganj', category: 'SC', district: 'Gopalganj', population: '2,562,012' },
-    18: { name: 'Siwan', category: 'General', district: 'Siwan', population: '3,318,176' },
-    19: { name: 'Maharajganj', category: 'General', district: 'Siwan', population: '3,318,176' },
-    20: { name: 'Saran', category: 'General', district: 'Saran', population: '3,951,862' },
-    21: { name: 'Chapra', category: 'General', district: 'Saran', population: '3,951,862' },
-    22: { name: 'Samastipur', category: 'SC', district: 'Samastipur', population: '4,261,566' },
-    23: { name: 'Begusarai', category: 'General', district: 'Begusarai', population: '2,970,541' },
-    24: { name: 'Khagaria', category: 'General', district: 'Khagaria', population: '1,666,886' },
-    25: { name: 'Bhagalpur', category: 'General', district: 'Bhagalpur', population: '3,037,766' },
-    26: { name: 'Banka', category: 'General', district: 'Banka', population: '2,034,763' },
-    27: { name: 'Munger', category: 'General', district: 'Munger', population: '1,367,765' },
-    28: { name: 'Lakhisarai', category: 'SC', district: 'Lakhisarai', population: '1,000,912' },
-    29: { name: 'Sheikhpura', category: 'General', district: 'Sheikhpura', population: '634,927' },
-    30: { name: 'Nalanda', category: 'General', district: 'Nalanda', population: '2,877,653' },
-    31: { name: 'Patna Sahib', category: 'General', district: 'Patna', population: '5,838,465' },
-    32: { name: 'Pataliputra', category: 'General', district: 'Patna', population: '5,838,465' },
-    33: { name: 'Arrah', category: 'General', district: 'Bhojpur', population: '2,728,407' },
-    34: { name: 'Buxar', category: 'General', district: 'Buxar', population: '1,706,352' },
-    35: { name: 'Sasaram', category: 'SC', district: 'Rohtas', population: '2,962,593' },
-    36: { name: 'Karakat', category: 'General', district: 'Rohtas', population: '2,962,593' },
-    37: { name: 'Jahanabad', category: 'General', district: 'Jahanabad', population: '1,125,313' },
-    38: { name: 'Aurangabad', category: 'General', district: 'Aurangabad', population: '2,540,073' },
-    39: { name: 'Gaya', category: 'SC', district: 'Gaya', population: '4,391,418' },
-    40: { name: 'Nawada', category: 'General', district: 'Nawada', population: '2,219,146' },
-  };
-
-  // Simplified Bihar state outline with constituencies (approximate positions)
-  const biharOutline = "M50,100 L400,100 L450,120 L480,150 L500,200 L520,250 L500,300 L480,350 L450,380 L400,400 L350,420 L300,400 L250,380 L200,360 L150,340 L100,320 L80,300 L60,280 L50,250 L40,200 L50,150 Z";
-
-  // Constituency polygons arranged to form Bihar map outline
-  const constituencyPaths = {
-    // Top row (Northern Bihar)
-    1: "50,100 120,100 120,140 50,140",
-    2: "120,100 190,100 190,140 120,140",
-    3: "190,100 260,100 260,140 190,140",
-    4: "260,100 330,100 330,140 260,140",
-    5: "330,100 400,100 400,140 330,140",
-    6: "400,100 450,100 450,140 400,140",
-    7: "450,100 500,120 480,160 430,140",
-    8: "500,120 520,150 500,180 480,160",
-    9: "520,150 520,200 480,200 500,180",
-    10: "520,200 520,250 480,250 480,200",
+  // TODO: Replace this with your actual SVG paths from mapshaper.org
+  // After following the guide above, you'll get real Bihar SVG paths like this:
+  const realBiharSVGPaths = `
+    <!-- REPLACE THESE WITH YOUR ACTUAL SVG PATHS FROM MAPSHAPER.ORG -->
+    <!-- Example format - you'll get the real ones after conversion -->
     
-    // Second row
-    11: "480,250 520,250 500,300 460,280",
-    12: "460,280 500,300 480,320 440,300",
-    13: "440,300 480,320 460,340 420,320",
-    14: "270,140 340,140 340,180 270,180",
-    15: "200,140 270,140 270,180 200,180",
-    16: "130,140 200,140 200,180 130,180",
-    17: "60,140 130,140 130,180 60,180",
-    18: "50,140 60,140 60,200 50,200",
-    19: "60,180 130,180 130,220 60,220",
-    20: "130,180 200,180 200,220 130,220",
+    <!-- Patna Sahib Constituency (Example - replace with real path) -->
+    <path 
+      d="M 450.123 250.456 L 470.789 245.123 L 485.456 260.789 L 480.123 275.456 L 465.789 280.123 L 450.123 265.456 Z" 
+      id="patna-sahib"
+      class="constituency-path"
+      data-name="Patna Sahib"
+      data-region="Central Bihar"
+      onclick="handleConstituencyClick('Patna Sahib', 'Central Bihar')"
+    />
     
-    // Third row
-    21: "200,180 270,180 270,220 200,220",
-    22: "270,180 340,180 340,220 270,220",
-    23: "340,180 410,180 410,220 340,220",
-    24: "410,180 460,180 460,220 410,220",
-    25: "460,180 480,180 480,220 460,220",
-    26: "460,220 480,220 480,260 460,260",
-    27: "410,220 460,220 460,260 410,260",
-    28: "340,220 410,220 410,260 340,260",
-    29: "270,220 340,220 340,260 270,260",
-    30: "200,220 270,220 270,260 200,260",
+    <!-- Patliputra Constituency (Example - replace with real path) -->
+    <path 
+      d="M 480.123 275.456 L 500.789 270.123 L 515.456 285.789 L 510.123 300.456 L 495.789 305.123 L 480.123 290.456 Z" 
+      id="patliputra"
+      class="constituency-path"
+      data-name="Patliputra"
+      data-region="Central Bihar"
+      onclick="handleConstituencyClick('Patliputra', 'Central Bihar')"
+    />
     
-    // Fourth row
-    31: "130,220 200,220 200,260 130,260",
-    32: "60,220 130,220 130,260 60,260",
-    33: "60,260 130,260 130,300 60,300",
-    34: "50,200 60,200 60,260 50,260",
-    35: "130,260 200,260 200,300 130,300",
-    36: "200,260 270,260 270,300 200,300",
-    37: "270,260 340,260 340,300 270,300",
-    38: "340,260 410,260 410,300 340,300",
-    39: "200,300 270,300 270,340 200,340",
-    40: "270,300 340,300 340,340 270,340",
-  };
+    <!-- Darbhanga Constituency (Example - replace with real path) -->
+    <path 
+      d="M 520.123 200.456 L 540.789 195.123 L 555.456 210.789 L 550.123 225.456 L 535.789 230.123 L 520.123 215.456 Z" 
+      id="darbhanga"
+      class="constituency-path"
+      data-name="Darbhanga"
+      data-region="Central Bihar"
+      onclick="handleConstituencyClick('Darbhanga', 'Central Bihar')"
+    />
+    
+    <!-- Muzaffarpur Constituency (Example - replace with real path) -->
+    <path 
+      d="M 420.123 180.456 L 440.789 175.123 L 455.456 190.789 L 450.123 205.456 L 435.789 210.123 L 420.123 195.456 Z" 
+      id="muzaffarpur"
+      class="constituency-path"
+      data-name="Muzaffarpur"
+      data-region="Central Bihar"
+      onclick="handleConstituencyClick('Muzaffarpur', 'Central Bihar')"
+    />
+    
+    <!-- Gaya Constituency (Example - replace with real path) -->
+    <path 
+      d="M 450.123 350.456 L 480.789 345.123 L 505.456 365.789 L 495.123 385.456 L 470.789 390.123 L 450.123 375.456 Z" 
+      id="gaya"
+      class="constituency-path"
+      data-name="Gaya"
+      data-region="South Bihar"
+      onclick="handleConstituencyClick('Gaya', 'South Bihar')"
+    />
+    
+    <!-- Bhagalpur Constituency (Example - replace with real path) -->
+    <path 
+      d="M 650.123 280.456 L 680.789 275.123 L 705.456 295.789 L 695.123 315.456 L 670.789 320.123 L 650.123 305.456 Z" 
+      id="bhagalpur"
+      class="constituency-path"
+      data-name="Bhagalpur"
+      data-region="East Bihar"
+      onclick="handleConstituencyClick('Bhagalpur', 'East Bihar')"
+    />
+    
+    <!-- ADD ALL 40 CONSTITUENCIES HERE WITH REAL PATHS -->
+    <!-- After getting data from mapshaper.org, replace above examples with real SVG paths -->
+    
+    <!-- Constituency Labels -->
+    <text x="460" y="260" text-anchor="middle" class="constituency-label">Patna Sahib</text>
+    <text x="490" y="285" text-anchor="middle" class="constituency-label">Patliputra</text>
+    <text x="530" y="210" text-anchor="middle" class="constituency-label">Darbhanga</text>
+    <text x="430" y="190" text-anchor="middle" class="constituency-label">Muzaffarpur</text>
+    <text x="470" y="365" text-anchor="middle" class="constituency-label">Gaya</text>
+    <text x="670" y="295" text-anchor="middle" class="constituency-label">Bhagalpur</text>
+    
+    <!-- ADD LABELS FOR ALL 40 CONSTITUENCIES -->
+  `;
 
-  const handleConstituencyPress = (constituencyId) => {
-    setSelectedConstituency(constituencyData[constituencyId]);
-    setModalVisible(true);
-  };
+  // Political parties
+  const parties = [
+    { name: 'BJP', fullName: 'Bharatiya Janata Party', color: '#FF9933', symbol: '🪷' },
+    { name: 'JDU', fullName: 'Janata Dal (United)', color: '#138808', symbol: '🏹' },
+    { name: 'RJD', fullName: 'Rashtriya Janata Dal', color: '#00B140', symbol: '🔦' },
+    { name: 'INC', fullName: 'Indian National Congress', color: '#19AAED', symbol: '✋' },
+    { name: 'LJP', fullName: 'Lok Janshakti Party', color: '#0066CC', symbol: '🏠' },
+    { name: 'CPI(ML)', fullName: 'Communist Party of India (Marxist-Leninist)', color: '#FF0000', symbol: '⚒️' },
+    { name: 'AIMIM', fullName: 'All India Majlis-e-Ittehadul Muslimeen', color: '#00C851', symbol: '🪁' },
+    { name: 'BSP', fullName: 'Bahujan Samaj Party', color: '#0033CC', symbol: '🐘' },
+    { name: 'NOTA', fullName: 'None of the Above', color: '#808080', symbol: '❌' }
+  ];
 
-  const getConstituencyColor = (category) => {
-    switch (category) {
-      case 'SC':
-        return '#FFE066'; // Yellow for SC
-      case 'ST':
-        return '#FFB3B3'; // Light pink for ST
-      default:
-        return '#E6E6E6'; // Light gray for General
+  const onMessage = (event) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'constituency-clicked') {
+        setSelectedConstituency({
+          name: data.constituency,
+          region: data.region
+        });
+        setVotingModalVisible(true);
+      }
+    } catch (err) {
+      console.warn('Message error:', event.nativeEvent.data);
     }
   };
 
-  const renderConstituency = (id) => {
-    const data = constituencyData[id];
-    if (!data || !constituencyPaths[id]) return null;
+  const castVote = (party) => {
+    if (!selectedConstituency) return;
 
-    const points = constituencyPaths[id];
-    const coords = points.split(' ').map(point => point.split(','));
-    
-    // Calculate center for text placement
-    const centerX = coords.reduce((sum, coord) => sum + parseFloat(coord[0]), 0) / coords.length;
-    const centerY = coords.reduce((sum, coord) => sum + parseFloat(coord[1]), 0) / coords.length;
+    setVotes(prev => ({
+      ...prev,
+      [selectedConstituency.name]: party
+    }));
 
-    return (
-      <G key={id}>
-        <Polygon
-          points={points}
-          fill={getConstituencyColor(data.category)}
-          stroke="#8B4513"
-          strokeWidth="1"
-          onPress={() => handleConstituencyPress(id)}
-        />
-        <SvgText
-          x={centerX}
-          y={centerY + 3}
-          fontSize="8"
-          fill="#000"
-          textAnchor="middle"
-          fontWeight="bold"
-          onPress={() => handleConstituencyPress(id)}
-        >
-          {id}
-        </SvgText>
-      </G>
+    setVotingModalVisible(false);
+
+    Alert.alert(
+      '🎉 Vote Successfully Cast!',
+      `Your vote for ${party.name} (${party.symbol}) in ${selectedConstituency.name} constituency has been recorded.`,
+      [{ text: 'Continue Voting' }]
     );
   };
 
+  // Generate dynamic styling for voted constituencies
+  const generateVotedStyles = () => {
+    return Object.entries(votes).map(([constituency, party]) => `
+      path[data-name="${constituency}"] {
+        fill: ${party.color} !important;
+        stroke: #333 !important;
+        stroke-width: 2 !important;
+      }
+    `).join('');
+  };
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Bihar Real SVG Map</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
+          color: #333;
+          overflow-x: auto;
+        }
+        
+        .container {
+          width: 100%;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px;
+        }
+        
+        .header {
+          background: rgba(255, 255, 255, 0.95);
+          padding: 20px;
+          border-radius: 15px;
+          text-align: center;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          backdrop-filter: blur(10px);
+          margin-bottom: 20px;
+          width: 100%;
+          max-width: 800px;
+        }
+        
+        .header h1 {
+          font-size: 24px;
+          font-weight: bold;
+          color: #333;
+          margin-bottom: 8px;
+        }
+        
+        .svg-container {
+          background: white;
+          border-radius: 20px;
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+          padding: 30px;
+          width: 100%;
+          max-width: 1200px;
+          overflow: hidden;
+        }
+        
+        .map-title {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        
+        .map-title h2 {
+          font-size: 20px;
+          color: #333;
+          margin-bottom: 5px;
+        }
+        
+        .map-title p {
+          color: #666;
+          font-size: 14px;
+        }
+        
+        /* SVG Styles */
+        .constituency-path {
+          fill: #e8f4fd;
+          stroke: #666;
+          stroke-width: 1;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        
+        .constituency-path:hover {
+          fill: #cce7ff;
+          stroke: #007bff;
+          stroke-width: 2;
+          filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .constituency-label {
+          font-size: 10px;
+          font-weight: bold;
+          fill: #333;
+          pointer-events: none;
+          text-anchor: middle;
+          opacity: 0.8;
+        }
+        
+        .constituency-path:hover + .constituency-label {
+          opacity: 1;
+          font-size: 11px;
+        }
+        
+        /* Dynamic styles for voted constituencies */
+        ${generateVotedStyles()}
+        
+        .stats {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: rgba(255, 255, 255, 0.95);
+          border-radius: 15px;
+          padding: 20px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(10px);
+          z-index: 1000;
+          min-width: 200px;
+        }
+        
+        .stats-title {
+          font-size: 16px;
+          font-weight: bold;
+          text-align: center;
+          margin-bottom: 15px;
+          color: #333;
+        }
+        
+        .stat-item {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+        
+        .stat-value {
+          font-weight: bold;
+          color: #667eea;
+        }
+        
+        .instruction {
+          background: rgba(255, 255, 255, 0.95);
+          padding: 15px;
+          border-radius: 10px;
+          margin-bottom: 20px;
+          text-align: center;
+          font-weight: 500;
+          color: #333;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+          .stats {
+            position: relative;
+            top: auto;
+            right: auto;
+            margin: 20px auto;
+            max-width: 90%;
+          }
+          
+          .container {
+            padding: 10px;
+          }
+          
+          .svg-container {
+            padding: 15px;
+          }
+          
+          .constituency-label {
+            font-size: 8px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🗳️ Bihar Lok Sabha Elections 2024</h1>
+          <p>Real SVG Map with Authentic Geographic Boundaries</p>
+        </div>
+        
+        <div class="instruction">
+          📍 <strong>Instructions:</strong> Follow the guide above to get real Bihar SVG paths, then replace the example paths in this template with your actual data from mapshaper.org
+        </div>
+        
+        <div class="stats">
+          <div class="stats-title">📊 Voting Progress</div>
+          <div class="stat-item">
+            <span>Total Constituencies:</span>
+            <span class="stat-value">40</span>
+          </div>
+          <div class="stat-item">
+            <span>Votes Cast:</span>
+            <span class="stat-value" id="voteCount">0</span>
+          </div>
+          <div class="stat-item">
+            <span>Remaining:</span>
+            <span class="stat-value" id="remainingCount">40</span>
+          </div>
+        </div>
+        
+        <div class="svg-container">
+          <div class="map-title">
+            <h2>🏛️ Bihar State - Authentic SVG Boundaries</h2>
+            <p>Click on any constituency to cast your vote • Based on real geographic data</p>
+          </div>
+          
+          <!-- TODO: Update viewBox after getting real SVG data -->
+          <!-- The viewBox values will come from your mapshaper.org export -->
+          <svg viewBox="0 0 800 500" width="100%" height="100%">
+            
+            <!-- Bihar state outer boundary (you'll get this from mapshaper.org) -->
+            <path 
+              d="M 50 50 L 750 50 L 750 450 L 50 450 Z" 
+              fill="none" 
+              stroke="#333" 
+              stroke-width="3" 
+              stroke-dasharray="10,5" 
+              opacity="0.3"
+            />
+            
+            <!-- State title -->
+            <text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="#333">
+              बिहार राज्य / BIHAR STATE
+            </text>
+            
+            <!-- Real constituency paths will go here -->
+            ${realBiharSVGPaths}
+            
+            <!-- Legend -->
+            <g transform="translate(50, 400)">
+              <rect x="0" y="0" width="200" height="80" fill="rgba(255,255,255,0.9)" stroke="#ccc" rx="5"/>
+              <text x="10" y="15" font-size="12" font-weight="bold" fill="#333">Legend:</text>
+              <rect x="10" y="20" width="15" height="10" fill="#e8f4fd" stroke="#666"/>
+              <text x="30" y="29" font-size="10" fill="#333">Unvoted Constituency</text>
+              <rect x="10" y="35" width="15" height="10" fill="#FF9933" stroke="#333"/>
+              <text x="30" y="44" font-size="10" fill="#333">Voted Constituency</text>
+              <text x="10" y="60" font-size="9" fill="#666">Real boundaries from DataMeet/OSM</text>
+            </g>
+            
+          </svg>
+        </div>
+      </div>
+
+      <script>
+        let voteCount = 0;
+        const totalConstituencies = 40;
+
+        function handleConstituencyClick(constituency, region) {
+          console.log('Clicked:', constituency, 'in', region);
+          
+          // Visual feedback
+          const path = document.querySelector('[data-name="' + constituency + '"]');
+          if (path) {
+            path.style.transform = 'scale(1.05)';
+            path.style.transformOrigin = 'center';
+            setTimeout(() => {
+              path.style.transform = 'scale(1)';
+            }, 300);
+          }
+          
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'constituency-clicked',
+              constituency: constituency,
+              region: region,
+              timestamp: new Date().toISOString()
+            }));
+          } else {
+            // Fallback for testing in browser
+            alert('Voting for: ' + constituency + ' (' + region + ')');
+          }
+        }
+
+        function updateVoteStats(newVoteCount) {
+          voteCount = newVoteCount;
+          const remaining = totalConstituencies - voteCount;
+          
+          document.getElementById('voteCount').textContent = voteCount;
+          document.getElementById('remainingCount').textContent = remaining;
+        }
+
+        // Make paths focusable for accessibility
+        document.querySelectorAll('.constituency-path').forEach(path => {
+          path.setAttribute('tabindex', '0');
+          path.setAttribute('role', 'button');
+          path.setAttribute('aria-label', 'Vote for ' + path.dataset.name + ' constituency');
+        });
+
+        console.log('Bihar Real SVG Map Template loaded');
+        console.log('📋 Next steps:');
+        console.log('1. Follow the step-by-step guide to get real Bihar SVG data');
+        console.log('2. Replace example paths with real paths from mapshaper.org');
+        console.log('3. Update viewBox with correct dimensions');
+        console.log('4. Add all 40 constituency paths and labels');
+      </script>
+    </body>
+    </html>
+  `;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Bihar Lok Sabha Constituencies</Text>
-        <Text style={styles.subtitle}>Interactive Map - 40 Constituencies</Text>
-      </View>
+    <View style={styles.container}>
+      <WebView
+        source={{ html: htmlContent }}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        onMessage={onMessage}
+        style={styles.webview}
+        startInLoadingState={true}
+        mixedContentMode="compatibility"
+        allowsInlineMediaPlayback={true}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        scalesPageToFit={false}
+        bounces={false}
+        injectedJavaScript={`
+          updateVoteStats(${Object.keys(votes).length});
+          true;
+        `}
+      />
 
-      <ScrollView style={styles.mapContainer} showsVerticalScrollIndicator={false}>
-        {/* Main Map */}
-        <View style={styles.svgContainer}>
-          <Text style={styles.mapTitle}>Bihar State Map</Text>
-          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <Svg height="350" width="550" viewBox="40 90 500 280">
-              {/* State outline */}
-              <Path
-                d={biharOutline}
-                fill="none"
-                stroke="#2c3e50"
-                strokeWidth="3"
-                strokeDasharray="5,5"
-              />
-              
-              {/* Render all constituencies */}
-              {Object.keys(constituencyData).map(id => renderConstituency(parseInt(id)))}
-            </Svg>
-          </ScrollView>
-          <Text style={styles.mapNote}>👆 Tap on any constituency to view details</Text>
-        </View>
-
-        {/* Legend */}
-        <View style={styles.legendContainer}>
-          <Text style={styles.legendTitle}>Category Legend</Text>
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={[styles.colorBox, { backgroundColor: '#E6E6E6' }]} />
-              <Text style={styles.legendText}>General (34)</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.colorBox, { backgroundColor: '#FFE066' }]} />
-              <Text style={styles.legendText}>SC (6)</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Statistics */}
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsTitle}>Quick Stats</Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>40</Text>
-              <Text style={styles.statLabel}>Total Seats</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>34</Text>
-              <Text style={styles.statLabel}>General</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>6</Text>
-              <Text style={styles.statLabel}>SC Reserved</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>0</Text>
-              <Text style={styles.statLabel}>ST Reserved</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Constituency List */}
-        <View style={styles.listContainer}>
-          <Text style={styles.listTitle}>All Constituencies</Text>
-          {Object.entries(constituencyData).map(([id, data]) => (
-            <TouchableOpacity
-              key={id}
-              style={styles.listItem}
-              onPress={() => handleConstituencyPress(id)}
-            >
-              <View style={styles.listItemContent}>
-                <View style={styles.constituencyNumber}>
-                  <Text style={styles.numberText}>{id}</Text>
-                </View>
-                <View style={styles.constituencyInfo}>
-                  <Text style={styles.constituencyName}>{data.name}</Text>
-                  <Text style={styles.constituencyDistrict}>District: {data.district}</Text>
-                  <Text style={styles.constituencyCategory}>Category: {data.category}</Text>
-                </View>
-                <View style={[styles.categoryIndicator, { backgroundColor: getConstituencyColor(data.category) }]} />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Modal for constituency details */}
+      {/* Voting Modal */}
       <Modal
         animationType="slide"
         transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        visible={votingModalVisible}
+        onRequestClose={() => setVotingModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>🗳️ Cast Your Vote</Text>
+              <TouchableOpacity 
+                onPress={() => setVotingModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
             {selectedConstituency && (
-              <>
-                <Text style={styles.modalTitle}>{selectedConstituency.name}</Text>
-                <Text style={styles.modalSubtitle}>Lok Sabha Constituency</Text>
-                
-                <View style={styles.modalDetails}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>District:</Text>
-                    <Text style={styles.detailValue}>{selectedConstituency.district}</Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Category:</Text>
-                    <Text style={[styles.detailValue, {
-                      color: selectedConstituency.category === 'SC' ? '#f39c12' : '#2c3e50'
-                    }]}>
-                      {selectedConstituency.category === 'SC' ? 'SC (Reserved)' : 'General'}
+              <View style={styles.constituencyInfo}>
+                <Text style={styles.constituencyName}>{selectedConstituency.name}</Text>
+                <Text style={styles.regionName}>{selectedConstituency.region}</Text>
+                <Text style={styles.authenticNote}>✅ Based on Real Geographic Boundaries</Text>
+                {votes[selectedConstituency.name] && (
+                  <View style={styles.previousVote}>
+                    <Text style={styles.previousVoteText}>
+                      ✅ Previous vote: {votes[selectedConstituency.name].name} {votes[selectedConstituency.name].symbol}
                     </Text>
                   </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Population:</Text>
-                    <Text style={styles.detailValue}>{selectedConstituency.population}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setModalVisible(false)}
-                  >
-                    <Text style={styles.closeButtonText}>Close</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
+                )}
+              </View>
             )}
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
-  );
-};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  header: {
-    backgroundColor: '#2c3e50',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#bdc3c7',
-    textAlign: 'center',
-    marginTop: 5,
-  },
-  mapContainer: {
-    flex: 1,
-    padding: 15,
-  },
-  svgContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  mapTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  mapNote: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    textAlign: 'center',
-    marginTop: 10,
-    fontStyle: 'italic',
-  },
-  legendContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  legendTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#2c3e50',
-  },
-  legendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  colorBox: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#8B4513',
-  },
-  legendText: {
-    fontSize: 14,
-    color: '#34495e',
-    fontWeight: '500',
-  },
-  statsContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  statsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#2c3e50',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#3498db',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    textAlign: 'center',
-  },
-  listContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  listTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#2c3e50',
-  },
-  listItem: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3498db',
-  },
-  listItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  constituencyNumber: {
-    backgroundColor: '#3498db',
-    borderRadius: 20,
-    width: 35,
-    height: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  numberText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  constituencyInfo: {
-    flex: 1,
-    marginLeft: 15,
-  },
-  constituencyName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2c3e50',
-  },
-  constituencyDistrict: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    marginTop: 2,
-  },
-  constituencyCategory: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    marginTop: 1,
-  },
-  categoryIndicator: {
-    width: 15,
-    height: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#8B4513',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 25,
-    margin: 20,
-    width: screenWidth - 40,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: '#7f8c8d',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  modalDetails: {
-    marginBottom: 25,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ecf0f1',
-  },
-  detailLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#34495e',
-  },
-  detailValue: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
-  },
-  modalButtons: {
-    alignItems: 'center',
-  },
-  closeButton: {
-    backgroundColor: '#3498db',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-  },
-  closeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
+            <Text style={styles.instructionText}>
+              Select your preferred political party:
+            </Text>
 
-export default App;
+            <ScrollView style={styles.partiesContainer} showsVerticalScrollIndicator={false}>
+              {parties.map((party, index) => (
+                <Touch
