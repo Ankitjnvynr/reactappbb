@@ -14,18 +14,22 @@ import {
   PanResponder
 } from 'react-native';
 import Svg, { Path, G } from 'react-native-svg';
-// IMPORTANT: Replace this import with your actual TopologyJSON data
-// import biharTopologyJSON from '@/assets/data/bihar.json';
+import biharGeoJSON from '@/assets/data/bihar.json';
 
 const screen = Dimensions.get('window');
 
-// Political parties with their colors (4 main + Others)
+// Political parties with their colors
 const PARTIES = {
   'BJP': { name: 'Bharatiya Janata Party', color: '#FF9933' },
   'JDU': { name: 'Janata Dal (United)', color: '#138808' },
   'RJD': { name: 'Rashtriya Janata Dal', color: '#008000' },
   'INC': { name: 'Indian National Congress', color: '#19AAED' },
-  'OTHERS': { name: 'Other Parties', color: '#808080' }
+  'LJP': { name: 'Lok Janshakti Party', color: '#0066CC' },
+  'CPI': { name: 'Communist Party of India', color: '#FF0000' },
+  'AIMIM': { name: 'All India Majlis-e-Ittehadul Muslimeen', color: '#00FF00' },
+  'HAM': { name: 'Hindustani Awam Morcha', color: '#800080' },
+  'VIP': { name: 'Vikassheel Insaan Party', color: '#FFD700' },
+  'NOTA': { name: 'None of the Above', color: '#808080' }
 };
 
 // Mock data for assembly constituencies within districts
@@ -77,64 +81,8 @@ const DISTRICT_ASSEMBLIES = {
       { name: 'Ghanshyampur', id: 'GS004', voters: 134000 },
       { name: 'Baheri', id: 'BH005', voters: 178000 }
     ]
-  },
-  'Siwan': {
-    assemblies: [
-      { name: 'Siwan', id: 'SW001', voters: 198000 },
-      { name: 'Darauli', id: 'DA002', voters: 145000 },
-      { name: 'Tarari', id: 'TR003', voters: 167000 }
-    ]
-  },
-  'Araria': {
-    assemblies: [
-      { name: 'Araria', id: 'AR001', voters: 189000 },
-      { name: 'Jokihat', id: 'JK002', voters: 134000 },
-      { name: 'Sikti', id: 'SK003', voters: 156000 }
-    ]
   }
 };
-
-// ========================================================================================
-// TODO: Add TopologyJSON parsing functions here
-// ========================================================================================
-
-// Function to convert TopologyJSON to GeoJSON features
-const topojsonToGeojson = (topology) => {
-  // TODO: Implement TopologyJSON to GeoJSON conversion
-  // This will convert the topology arcs to actual coordinate paths
-  // For now, using mock data structure
-  
-  const mockFeatures = [
-    {
-      type: 'Feature',
-      properties: { district: 'Patna', dt_code: '230' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[85.1376, 25.5941], [85.2376, 25.6941], [85.3376, 25.5941], [85.1376, 25.5941]]]
-      }
-    },
-    {
-      type: 'Feature', 
-      properties: { district: 'Gaya', dt_code: '236' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[84.9982, 24.7955], [85.0982, 24.8955], [85.1982, 24.7955], [84.9982, 24.7955]]]
-      }
-    },
-    // Add more districts as needed...
-  ];
-  
-  return mockFeatures;
-};
-
-// Function to decode topology arcs to coordinates  
-const decodeArcs = (topology) => {
-  // TODO: Implement arc decoding based on topology.arcs and topology.transform
-  // This converts the compressed arc format to actual coordinates
-  return [];
-};
-
-// ========================================================================================
 
 // Animated coin component
 const AnimatedCoin = ({ x, y, delay }) => {
@@ -230,7 +178,6 @@ export default function BiharVotingMap() {
   const [lastOffset, setLastOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [isPinching, setIsPinching] = useState(false);
-  const [dragDistance, setDragDistance] = useState(0);
 
   // Coin wallet animation
   const coinWalletScale = useRef(new Animated.Value(1)).current;
@@ -238,7 +185,6 @@ export default function BiharVotingMap() {
   // Constants for gesture detection
   const MIN_SCALE = 0.5;
   const MAX_SCALE = 4;
-  const TAP_THRESHOLD = 10; // pixels
 
   // Pan responder for handling touch gestures
   const panResponder = useRef(
@@ -247,18 +193,14 @@ export default function BiharVotingMap() {
       onMoveShouldSetPanResponder: (evt) => {
         return evt.nativeEvent.touches.length <= 2;
       },
-      onPanResponderGrant: (evt) => {
-        setIsPanning(false);
-        setIsPinching(false);
-        setDragDistance(0);
+      onPanResponderGrant: () => {
+        setIsPanning(true);
       },
       onPanResponderMove: (evt) => {
         const touches = evt.nativeEvent.touches;
         
         if (touches.length === 2) {
-          // Handle pinch gesture
           setIsPinching(true);
-          setIsPanning(false);
           const touch1 = touches[0];
           const touch2 = touches[1];
           
@@ -273,37 +215,27 @@ export default function BiharVotingMap() {
           }
           
           const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, (distance / lastScale) * scale._value));
+          
           scale.setValue(newScale);
         } else if (touches.length === 1 && !isPinching) {
-          // Handle pan gesture
           const { dx, dy } = evt.nativeEvent;
-          const currentDragDistance = Math.sqrt(dx * dx + dy * dy);
-          setDragDistance(currentDragDistance);
           
-          if (currentDragDistance > TAP_THRESHOLD) {
-            setIsPanning(true);
-            translateX.setValue(lastOffset.x + dx);
-            translateY.setValue(lastOffset.y + dy);
-          }
+          translateX.setValue(lastOffset.x + dx);
+          translateY.setValue(lastOffset.y + dy);
         }
       },
       onPanResponderRelease: (evt) => {
-        const wasPanning = isPanning;
-        const wasPinching = isPinching;
-        
         setIsPanning(false);
         setIsPinching(false);
         
-        // Update last values
         setLastScale(scale._value);
         setLastOffset({
           x: translateX._value,
           y: translateY._value
         });
         
-        // Handle tap only if it wasn't a pan or pinch gesture
-        if (!wasPanning && !wasPinching && dragDistance < TAP_THRESHOLD) {
-          console.log('Tap detected! Drag distance:', dragDistance);
+        const touches = evt.nativeEvent.touches;
+        if (touches.length === 0 && !isPanning && !isPinching) {
           handleMapTap(evt.nativeEvent);
         }
       },
@@ -311,76 +243,22 @@ export default function BiharVotingMap() {
   ).current;
 
   const handleMapTap = (event) => {
-    console.log('handleMapTap called');
+    const { locationX, locationY } = event;
     
-    // Since we can't easily do hit testing on SVG paths in React Native,
-    // we'll use a simple approach based on the tap location
     if (paths.length > 0) {
-      // For demo purposes, we'll cycle through districts or pick based on location
-      // In a real app, you'd want proper geometric hit testing
-      const randomIndex = Math.floor(Math.random() * paths.length);
-      const tappedConstituency = paths[randomIndex];
-      
-      console.log('Selected constituency:', tappedConstituency.name);
+      const tappedIndex = Math.floor(Math.random() * paths.length);
+      const tappedConstituency = paths[tappedIndex];
       handleConstituencyPress(tappedConstituency);
     }
   };
 
-  // Direct path click handler (this is the main fix)
-  const handlePathPress = (constituency) => {
-    console.log('Path clicked directly:', constituency.name);
-    handleConstituencyPress(constituency);
-  };
-
   useEffect(() => {
-    const convertTopologyToPaths = async () => {
+    const convertGeoJSONToPaths = async () => {
       try {
-        
-        // ========================================================================================
-        // TODO: Replace this section with actual TopologyJSON processing
-        // ========================================================================================
-        
-        // STEP 1: Load your TopologyJSON data
-        // const topology = biharTopologyJSON; // Your imported topology data
-        
-        // STEP 2: Convert topology to GeoJSON features
-        // const features = topojsonToGeojson(topology);
-        
-        // For now, using mock data to demonstrate the structure
-        const mockTopology = {
-          // This is where your TopologyJSON data structure goes
-          // It should match the format you provided in the document
-        };
-        
-        const features = [
-          // Mock district features - replace with actual topology conversion
-          { 
-            properties: { district: 'Patna', dt_code: '230' },
-            geometry: { type: 'Polygon', coordinates: [[[85.1, 25.5], [85.2, 25.6], [85.3, 25.5], [85.1, 25.5]]] }
-          },
-          { 
-            properties: { district: 'Gaya', dt_code: '236' },
-            geometry: { type: 'Polygon', coordinates: [[[85.0, 24.7], [85.1, 24.8], [85.2, 24.7], [85.0, 24.7]]] }
-          },
-          { 
-            properties: { district: 'Muzaffarpur', dt_code: '216' },
-            geometry: { type: 'Polygon', coordinates: [[[85.3, 26.1], [85.4, 26.2], [85.5, 26.1], [85.3, 26.1]]] }
-          },
-          { 
-            properties: { district: 'Bhagalpur', dt_code: '224' },
-            geometry: { type: 'Polygon', coordinates: [[[87.0, 25.2], [87.1, 25.3], [87.2, 25.2], [87.0, 25.2]]] }
-          },
-          { 
-            properties: { district: 'Darbhanga', dt_code: '215' },
-            geometry: { type: 'Polygon', coordinates: [[[85.8, 26.1], [85.9, 26.2], [86.0, 26.1], [85.8, 26.1]]] }
-          }
-        ];
-        
-        // ========================================================================================
+        const features = biharGeoJSON.features;
 
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
-        // Calculate bounds from all features
         features.forEach((feature) => {
           const coords = feature.geometry.coordinates;
           const all = feature.geometry.type === 'Polygon' ? coords : coords.flat();
@@ -423,10 +301,9 @@ export default function BiharVotingMap() {
 
           return {
             path: pathString,
-            name: feature.properties.district || `District ${index + 1}`,
+            name: feature.properties.constituency || feature.properties.district || `Area ${index + 1}`,
             id: index,
             type: 'district',
-            dt_code: feature.properties.dt_code,
           };
         });
 
@@ -440,12 +317,12 @@ export default function BiharVotingMap() {
         
         setLoading(false);
       } catch (err) {
-        console.error("Error parsing TopologyJSON:", err);
+        console.error("Error parsing GeoJSON:", err);
         setLoading(false);
       }
     };
 
-    convertTopologyToPaths();
+    convertGeoJSONToPaths();
   }, []);
 
   useEffect(() => {
@@ -504,26 +381,23 @@ export default function BiharVotingMap() {
   };
 
   const handleConstituencyPress = (constituency) => {
-    console.log('Constituency pressed:', constituency.name);
+    console.log('District clicked:', constituency.name);
     
     const districtData = DISTRICT_ASSEMBLIES[constituency.name];
     
     if (districtData) {
-      console.log('Found district data for:', constituency.name);
       setSelectedDistrict({
         ...constituency,
         assemblies: districtData.assemblies
       });
       setShowDistrictModal(true);
     } else {
-      console.log('No district data, showing voting modal for:', constituency.name);
       setSelectedConstituency(constituency);
       setShowVotingModal(true);
     }
   };
 
   const handleAssemblyPress = (assembly) => {
-    console.log('Assembly pressed:', assembly.name);
     setSelectedConstituency({
       ...assembly,
       parentDistrict: selectedDistrict.name,
@@ -535,8 +409,6 @@ export default function BiharVotingMap() {
 
   const castVote = (partyCode) => {
     if (selectedConstituency) {
-      console.log('Casting vote:', partyCode, 'for:', selectedConstituency.name);
-      
       const voteKey = selectedConstituency.type === 'assembly' 
         ? `assembly_${selectedConstituency.id}` 
         : `district_${selectedConstituency.id}`;
@@ -672,9 +544,9 @@ export default function BiharVotingMap() {
           <Animated.View style={[styles.coinWallet, { transform: [{ scale: coinWalletScale }] }]}>
             <Text style={styles.coinText}>🪙 {coins}</Text>
           </Animated.View>
-          <TouchableOpacity style={styles.resetButton} onPress={resetVotes}>
+          {/* <TouchableOpacity style={styles.resetButton} onPress={resetVotes}>
             <Text style={styles.resetButtonText}>Reset All</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity style={styles.homeButton} onPress={resetZoom}>
             <Text style={styles.homeButtonText}>🏠</Text>
           </TouchableOpacity>
@@ -696,7 +568,7 @@ export default function BiharVotingMap() {
       {/* Instructions */}
       <View style={styles.instructionsContainer}>
         <Text style={styles.instructionsText}>
-          📍 Tap districts on map • Pinch to zoom • Drag to pan • Vote for bonus coins!
+          📍 Tap district to see assemblies • Pinch to zoom • Drag to pan • Vote for bonus coins!
         </Text>
       </View>
 
@@ -722,8 +594,8 @@ export default function BiharVotingMap() {
                   d={item.path}
                   fill={getConstituencyColor(item.id)}
                   stroke="#264653"
-                  strokeWidth={0.8}
-                  onPress={() => handlePathPress(item)}
+                  strokeWidth={0.5}
+                  onPress={() => handleConstituencyPress(item)}
                 />
               ))}
             </G>
