@@ -8,379 +8,76 @@ import {
   TouchableOpacity, 
   StyleSheet,
   Modal,
+  PanResponder,
   Animated,
-  ScrollView,
-  BackHandler,
-  PanResponder
+  FlatList,
+  ScrollView
 } from 'react-native';
 import Svg, { Path, G } from 'react-native-svg';
-// IMPORTANT: Replace this import with your actual TopologyJSON data
-// import biharTopologyJSON from '@/assets/data/bihar.json';
+import biharGeoJSON from '@/assets/data/bihar.json';
 
 const screen = Dimensions.get('window');
 
-// Political parties with their colors (4 main + Others)
+// Political parties with their colors
 const PARTIES = {
   'BJP': { name: 'Bharatiya Janata Party', color: '#FF9933' },
   'JDU': { name: 'Janata Dal (United)', color: '#138808' },
   'RJD': { name: 'Rashtriya Janata Dal', color: '#008000' },
   'INC': { name: 'Indian National Congress', color: '#19AAED' },
-  'OTHERS': { name: 'Other Parties', color: '#808080' }
+  'LJP': { name: 'Lok Janshakti Party', color: '#0066CC' }
 };
 
-// Mock data for assembly constituencies within districts
-const DISTRICT_ASSEMBLIES = {
-  'Patna': {
-    assemblies: [
-      { name: 'Patna Sahib', id: 'PS001', voters: 245000 },
-      { name: 'Patliputra', id: 'PP002', voters: 198000 },
-      { name: 'Bankipore', id: 'BK003', voters: 167000 },
-      { name: 'Kumhrar', id: 'KH004', voters: 203000 },
-      { name: 'Patna Women', id: 'PW005', voters: 189000 },
-      { name: 'Danapur', id: 'DP006', voters: 221000 },
-      { name: 'Maner', id: 'MN007', voters: 178000 },
-      { name: 'Phulwari', id: 'PH008', voters: 156000 }
-    ]
-  },
-  'Gaya': {
-    assemblies: [
-      { name: 'Gaya Town', id: 'GT001', voters: 187000 },
-      { name: 'Belaganj', id: 'BL002', voters: 165000 },
-      { name: 'Bodh Gaya', id: 'BG003', voters: 198000 },
-      { name: 'Tikari', id: 'TK004', voters: 142000 },
-      { name: 'Tan Kuppa', id: 'TU005', voters: 134000 },
-      { name: 'Atri', id: 'AT006', voters: 156000 }
-    ]
-  },
-  'Muzaffarpur': {
-    assemblies: [
-      { name: 'Muzaffarpur', id: 'MZ001', voters: 234000 },
-      { name: 'Aurai', id: 'AR002', voters: 167000 },
-      { name: 'Minapur', id: 'MP003', voters: 145000 },
-      { name: 'Bochahan', id: 'BC004', voters: 178000 },
-      { name: 'Sakra', id: 'SK005', voters: 134000 }
-    ]
-  },
-  'Bhagalpur': {
-    assemblies: [
-      { name: 'Bhagalpur', id: 'BH001', voters: 201000 },
-      { name: 'Sultanganj', id: 'SG002', voters: 123000 },
-      { name: 'Nathnagar', id: 'NN003', voters: 167000 },
-      { name: 'Gopalpur', id: 'GP004', voters: 145000 }
-    ]
-  },
-  'Darbhanga': {
-    assemblies: [
-      { name: 'Darbhanga Rural', id: 'DR001', voters: 189000 },
-      { name: 'Darbhanga', id: 'DB002', voters: 223000 },
-      { name: 'Kusheshwar Asthan', id: 'KA003', voters: 156000 },
-      { name: 'Ghanshyampur', id: 'GS004', voters: 134000 },
-      { name: 'Baheri', id: 'BH005', voters: 178000 }
-    ]
-  },
-  'Siwan': {
-    assemblies: [
-      { name: 'Siwan', id: 'SW001', voters: 198000 },
-      { name: 'Darauli', id: 'DA002', voters: 145000 },
-      { name: 'Tarari', id: 'TR003', voters: 167000 }
-    ]
-  },
-  'Araria': {
-    assemblies: [
-      { name: 'Araria', id: 'AR001', voters: 189000 },
-      { name: 'Jokihat', id: 'JK002', voters: 134000 },
-      { name: 'Sikti', id: 'SK003', voters: 156000 }
-    ]
-  }
-};
-
-// ========================================================================================
-// TODO: Add TopologyJSON parsing functions here
-// ========================================================================================
-
-// Function to convert TopologyJSON to GeoJSON features
-const topojsonToGeojson = (topology) => {
-  // TODO: Implement TopologyJSON to GeoJSON conversion
-  // This will convert the topology arcs to actual coordinate paths
-  // For now, using mock data structure
-  
-  const mockFeatures = [
-    {
-      type: 'Feature',
-      properties: { district: 'Patna', dt_code: '230' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[85.1376, 25.5941], [85.2376, 25.6941], [85.3376, 25.5941], [85.1376, 25.5941]]]
-      }
-    },
-    {
-      type: 'Feature', 
-      properties: { district: 'Gaya', dt_code: '236' },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[84.9982, 24.7955], [85.0982, 24.8955], [85.1982, 24.7955], [84.9982, 24.7955]]]
-      }
-    },
-    // Add more districts as needed...
-  ];
-  
-  return mockFeatures;
-};
-
-// Function to decode topology arcs to coordinates  
-const decodeArcs = (topology) => {
-  // TODO: Implement arc decoding based on topology.arcs and topology.transform
-  // This converts the compressed arc format to actual coordinates
-  return [];
-};
-
-// ========================================================================================
-
-// Animated coin component
-const AnimatedCoin = ({ x, y, delay }) => {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(0)).current;
-  const rotate = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animate = () => {
-      Animated.sequence([
-        Animated.delay(delay),
-        Animated.parallel([
-          Animated.timing(opacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scale, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(rotate, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(translateY, {
-            toValue: -150,
-            duration: 1200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacity, {
-            toValue: 0,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start();
-    };
-
-    animate();
-  }, [delay, opacity, scale, rotate, translateY]);
-
-  const rotateInterpolate = rotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  return (
-    <Animated.View
-      style={[
-        styles.coin,
-        {
-          left: x,
-          top: y,
-          opacity,
-          transform: [
-            { scale },
-            { translateY },
-            { rotate: rotateInterpolate }
-          ],
-        },
-      ]}
-    >
-      <Text style={styles.coinText}>🪙</Text>
-    </Animated.View>
-  );
+// Mock data for areas and their constituencies
+const AREA_CONSTITUENCIES = {
+  'Patna': ['Patna Sahib', 'Patna West', 'Patna East', 'Patna North'],
+  'Gaya': ['Gaya Town', 'Belaganj', 'Bodh Gaya', 'Aurangabad'],
+  'Muzaffarpur': ['Muzaffarpur East', 'Muzaffarpur West', 'Sitamarhi', 'Sheohar'],
+  'Bhagalpur': ['Bhagalpur East', 'Bhagalpur West', 'Nathnagar', 'Sultanganj'],
+  'Darbhanga': ['Darbhanga Rural', 'Darbhanga', 'Laherisarai', 'Benipur'],
+  'Purnia': ['Purnia East', 'Purnia West', 'Kasba', 'Banmankhi'],
+  'Begusarai': ['Begusarai', 'Sahebpur Kamal', 'Matihani', 'Teghra'],
+  'Katihar': ['Katihar', 'Kadwa', 'Balrampur', 'Pranpur'],
+  'Munger': ['Munger', 'Jamalpur', 'Lakhisarai', 'Suryagarha'],
+  'Saharsa': ['Saharsa', 'Mahishi', 'Simri Bakhtiarpur', 'Sonbarsa']
 };
 
 export default function BiharVotingMap() {
   const [paths, setPaths] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [votes, setVotes] = useState({});
+  const [votes, setVotes] = useState({}); // Store votes for each constituency
+  const [lockedVotes, setLockedVotes] = useState({}); // Store locked status for each constituency
+  const [selectedArea, setSelectedArea] = useState(null);
   const [selectedConstituency, setSelectedConstituency] = useState(null);
+  const [showAreaModal, setShowAreaModal] = useState(false);
   const [showVotingModal, setShowVotingModal] = useState(false);
-  const [showDistrictModal, setShowDistrictModal] = useState(false);
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [showLockConfirmModal, setShowLockConfirmModal] = useState(false);
   const [voteCounts, setVoteCounts] = useState({});
-  const [assemblyVotes, setAssemblyVotes] = useState({});
   const [coins, setCoins] = useState(0);
-  const [animatedCoins, setAnimatedCoins] = useState([]);
+  const [sparkles, setSparkles] = useState([]);
+  const [pendingLockConstituency, setPendingLockConstituency] = useState(null);
 
-  // Gesture and zoom state
+  // Zoom and pan state
   const scale = useRef(new Animated.Value(1)).current;
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-  
-  const [lastScale, setLastScale] = useState(1);
-  const [lastOffset, setLastOffset] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [isPinching, setIsPinching] = useState(false);
-  const [dragDistance, setDragDistance] = useState(0);
+  const [currentScale, setCurrentScale] = useState(1);
+  const [currentTranslateX, setCurrentTranslateX] = useState(0);
+  const [currentTranslateY, setCurrentTranslateY] = useState(0);
 
-  // Coin wallet animation
-  const coinWalletScale = useRef(new Animated.Value(1)).current;
-
-  // Constants for gesture detection
-  const MIN_SCALE = 0.5;
-  const MAX_SCALE = 4;
-  const TAP_THRESHOLD = 10; // pixels
-
-  // Pan responder for handling touch gestures
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (evt) => {
-        return evt.nativeEvent.touches.length <= 2;
-      },
-      onPanResponderGrant: (evt) => {
-        setIsPanning(false);
-        setIsPinching(false);
-        setDragDistance(0);
-      },
-      onPanResponderMove: (evt) => {
-        const touches = evt.nativeEvent.touches;
-        
-        if (touches.length === 2) {
-          // Handle pinch gesture
-          setIsPinching(true);
-          setIsPanning(false);
-          const touch1 = touches[0];
-          const touch2 = touches[1];
-          
-          const distance = Math.sqrt(
-            Math.pow(touch2.pageX - touch1.pageX, 2) +
-            Math.pow(touch2.pageY - touch1.pageY, 2)
-          );
-          
-          if (!lastScale) {
-            setLastScale(distance);
-            return;
-          }
-          
-          const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, (distance / lastScale) * scale._value));
-          scale.setValue(newScale);
-        } else if (touches.length === 1 && !isPinching) {
-          // Handle pan gesture
-          const { dx, dy } = evt.nativeEvent;
-          const currentDragDistance = Math.sqrt(dx * dx + dy * dy);
-          setDragDistance(currentDragDistance);
-          
-          if (currentDragDistance > TAP_THRESHOLD) {
-            setIsPanning(true);
-            translateX.setValue(lastOffset.x + dx);
-            translateY.setValue(lastOffset.y + dy);
-          }
-        }
-      },
-      onPanResponderRelease: (evt) => {
-        const wasPanning = isPanning;
-        const wasPinching = isPinching;
-        
-        setIsPanning(false);
-        setIsPinching(false);
-        
-        // Update last values
-        setLastScale(scale._value);
-        setLastOffset({
-          x: translateX._value,
-          y: translateY._value
-        });
-        
-        // Handle tap only if it wasn't a pan or pinch gesture
-        if (!wasPanning && !wasPinching && dragDistance < TAP_THRESHOLD) {
-          console.log('Tap detected! Drag distance:', dragDistance);
-          handleMapTap(evt.nativeEvent);
-        }
-      },
-    })
-  ).current;
-
-  const handleMapTap = (event) => {
-    console.log('handleMapTap called');
-    
-    // Since we can't easily do hit testing on SVG paths in React Native,
-    // we'll use a simple approach based on the tap location
-    if (paths.length > 0) {
-      // For demo purposes, we'll cycle through districts or pick based on location
-      // In a real app, you'd want proper geometric hit testing
-      const randomIndex = Math.floor(Math.random() * paths.length);
-      const tappedConstituency = paths[randomIndex];
-      
-      console.log('Selected constituency:', tappedConstituency.name);
-      handleConstituencyPress(tappedConstituency);
-    }
-  };
-
-  // Direct path click handler (this is the main fix)
-  const handlePathPress = (constituency) => {
-    console.log('Path clicked directly:', constituency.name);
-    handleConstituencyPress(constituency);
-  };
+  // Touch tracking for pinch and pan
+  const lastDistance = useRef(0);
+  const lastScale = useRef(1);
+  const lastPan = useRef({ x: 0, y: 0 });
+  const isZooming = useRef(false);
 
   useEffect(() => {
-    const convertTopologyToPaths = async () => {
+    const convertGeoJSONToPaths = async () => {
       try {
-        
-        // ========================================================================================
-        // TODO: Replace this section with actual TopologyJSON processing
-        // ========================================================================================
-        
-        // STEP 1: Load your TopologyJSON data
-        // const topology = biharTopologyJSON; // Your imported topology data
-        
-        // STEP 2: Convert topology to GeoJSON features
-        // const features = topojsonToGeojson(topology);
-        
-        // For now, using mock data to demonstrate the structure
-        const mockTopology = {
-          // This is where your TopologyJSON data structure goes
-          // It should match the format you provided in the document
-        };
-        
-        const features = [
-          // Mock district features - replace with actual topology conversion
-          { 
-            properties: { district: 'Patna', dt_code: '230' },
-            geometry: { type: 'Polygon', coordinates: [[[85.1, 25.5], [85.2, 25.6], [85.3, 25.5], [85.1, 25.5]]] }
-          },
-          { 
-            properties: { district: 'Gaya', dt_code: '236' },
-            geometry: { type: 'Polygon', coordinates: [[[85.0, 24.7], [85.1, 24.8], [85.2, 24.7], [85.0, 24.7]]] }
-          },
-          { 
-            properties: { district: 'Muzaffarpur', dt_code: '216' },
-            geometry: { type: 'Polygon', coordinates: [[[85.3, 26.1], [85.4, 26.2], [85.5, 26.1], [85.3, 26.1]]] }
-          },
-          { 
-            properties: { district: 'Bhagalpur', dt_code: '224' },
-            geometry: { type: 'Polygon', coordinates: [[[87.0, 25.2], [87.1, 25.3], [87.2, 25.2], [87.0, 25.2]]] }
-          },
-          { 
-            properties: { district: 'Darbhanga', dt_code: '215' },
-            geometry: { type: 'Polygon', coordinates: [[[85.8, 26.1], [85.9, 26.2], [86.0, 26.1], [85.8, 26.1]]] }
-          }
-        ];
-        
-        // ========================================================================================
+        const features = biharGeoJSON.features;
 
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
-        // Calculate bounds from all features
+        // First, get bounds
         features.forEach((feature) => {
           const coords = feature.geometry.coordinates;
           const all = feature.geometry.type === 'Polygon' ? coords : coords.flat();
@@ -396,7 +93,7 @@ export default function BiharVotingMap() {
         });
 
         const scaleX = screen.width / (maxX - minX);
-        const scaleY = (screen.height - 200) / (maxY - minY);
+        const scaleY = (screen.height - 250) / (maxY - minY); // Account for header and summary
         const mapScale = Math.min(scaleX, scaleY) * 0.9;
 
         const translateXOffset = -minX * mapScale + (screen.width - (maxX - minX) * mapScale) / 2;
@@ -421,17 +118,21 @@ export default function BiharVotingMap() {
             coords.forEach((poly) => poly.forEach(drawPolygon));
           }
 
+          // Assign area based on feature properties or index
+          const areaNames = Object.keys(AREA_CONSTITUENCIES);
+          const assignedArea = feature.properties.district || areaNames[index % areaNames.length];
+
           return {
             path: pathString,
-            name: feature.properties.district || `District ${index + 1}`,
+            name: feature.properties.constituency || `Area ${index + 1}`,
+            area: assignedArea,
             id: index,
-            type: 'district',
-            dt_code: feature.properties.dt_code,
           };
         });
 
         setPaths(pathData);
         
+        // Initialize vote counts
         const initialCounts = {};
         Object.keys(PARTIES).forEach(party => {
           initialCounts[party] = 0;
@@ -440,121 +141,205 @@ export default function BiharVotingMap() {
         
         setLoading(false);
       } catch (err) {
-        console.error("Error parsing TopologyJSON:", err);
+        console.error("Error parsing GeoJSON:", err);
         setLoading(false);
       }
     };
 
-    convertTopologyToPaths();
+    convertGeoJSONToPaths();
   }, []);
 
-  useEffect(() => {
-    const backAction = () => {
-      if (showDistrictModal) {
-        setShowDistrictModal(false);
-        setSelectedDistrict(null);
-        return true;
-      }
-      if (showVotingModal) {
-        setShowVotingModal(false);
-        setSelectedConstituency(null);
-        return true;
-      }
-      return false;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
+  // Calculate distance between two touches
+  const getDistance = (touches) => {
+    if (touches.length < 2) return 0;
+    const [first, second] = touches;
+    return Math.sqrt(
+      Math.pow(second.pageX - first.pageX, 2) + 
+      Math.pow(second.pageY - first.pageY, 2)
     );
+  };
 
-    return () => backHandler.remove();
-  }, [showDistrictModal, showVotingModal]);
+  // Get center point of two touches
+  const getCenter = (touches) => {
+    if (touches.length < 2) return { x: 0, y: 0 };
+    const [first, second] = touches;
+    return {
+      x: (first.pageX + second.pageX) / 2,
+      y: (first.pageY + second.pageY) / 2
+    };
+  };
 
-  const createCoinAnimation = () => {
-    const newCoins = [];
-    for (let i = 0; i < 8; i++) {
-      newCoins.push({
-        id: Date.now() + i,
-        x: Math.random() * screen.width,
-        y: Math.random() * (screen.height * 0.7),
-        delay: i * 150,
-      });
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        const touches = evt.nativeEvent.touches;
+        if (touches.length === 2) {
+          // Start pinch gesture
+          isZooming.current = true;
+          lastDistance.current = getDistance(touches);
+          lastScale.current = currentScale;
+        } else if (touches.length === 1) {
+          // Start pan gesture
+          isZooming.current = false;
+          lastPan.current = {
+            x: currentTranslateX,
+            y: currentTranslateY
+          };
+        }
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        const touches = evt.nativeEvent.touches;
+        
+        if (touches.length === 2) {
+          // Handle pinch-to-zoom
+          isZooming.current = true;
+          const currentDistance = getDistance(touches);
+          
+          if (lastDistance.current > 0) {
+            const newScale = Math.max(0.5, Math.min(5, lastScale.current * (currentDistance / lastDistance.current)));
+            
+            setCurrentScale(newScale);
+            scale.setValue(newScale);
+          }
+        } else if (touches.length === 1 && !isZooming.current) {
+          // Handle pan (single finger drag)
+          const newTranslateX = lastPan.current.x + gestureState.dx;
+          const newTranslateY = lastPan.current.y + gestureState.dy;
+          
+          setCurrentTranslateX(newTranslateX);
+          setCurrentTranslateY(newTranslateY);
+          translateX.setValue(newTranslateX);
+          translateY.setValue(newTranslateY);
+        }
+      },
+      onPanResponderRelease: (evt) => {
+        const touches = evt.nativeEvent.touches;
+        if (touches.length === 0) {
+          isZooming.current = false;
+        }
+      },
+    })
+  ).current;
+
+  const handleAreaPress = (areaInfo) => {
+    // Only handle press if not zooming/panning
+    if (!isZooming.current) {
+      setSelectedArea(areaInfo.area);
+      setShowAreaModal(true);
     }
-    setAnimatedCoins(newCoins);
-
-    setTimeout(() => {
-      setAnimatedCoins([]);
-    }, 2500);
   };
 
-  const animateCoinWallet = () => {
-    Animated.sequence([
-      Animated.timing(coinWalletScale, {
-        toValue: 1.4,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(coinWalletScale, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const handleConstituencyPress = (constituency) => {
-    console.log('Constituency pressed:', constituency.name);
-    
-    const districtData = DISTRICT_ASSEMBLIES[constituency.name];
-    
-    if (districtData) {
-      console.log('Found district data for:', constituency.name);
-      setSelectedDistrict({
-        ...constituency,
-        assemblies: districtData.assemblies
-      });
-      setShowDistrictModal(true);
-    } else {
-      console.log('No district data, showing voting modal for:', constituency.name);
-      setSelectedConstituency(constituency);
-      setShowVotingModal(true);
+  const handleConstituencySelect = (constituency) => {
+    // Check if this constituency's vote is locked
+    if (lockedVotes[constituency]) {
+      Alert.alert(
+        '🔒 Vote Locked',
+        `Your vote for ${constituency} is already locked and cannot be changed.`,
+        [{ text: 'OK' }]
+      );
+      setShowAreaModal(false);
+      return;
     }
-  };
 
-  const handleAssemblyPress = (assembly) => {
-    console.log('Assembly pressed:', assembly.name);
-    setSelectedConstituency({
-      ...assembly,
-      parentDistrict: selectedDistrict.name,
-      type: 'assembly'
-    });
-    setShowDistrictModal(false);
+    setSelectedConstituency(constituency);
+    setShowAreaModal(false);
     setShowVotingModal(true);
+  };
+
+  // Create sparkle effect
+  const createSparkles = () => {
+    const newSparkles = [];
+    for (let i = 0; i < 12; i++) {
+      const sparkle = {
+        id: Math.random(),
+        x: Math.random() * screen.width,
+        y: Math.random() * (screen.height * 0.6) + 100,
+        scale: new Animated.Value(0),
+        opacity: new Animated.Value(1),
+        rotation: new Animated.Value(0),
+      };
+      newSparkles.push(sparkle);
+    }
+    setSparkles(newSparkles);
+
+    // Animate sparkles
+    newSparkles.forEach((sparkle, index) => {
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(sparkle.scale, {
+            toValue: 1,
+            duration: 300,
+            delay: index * 50,
+            useNativeDriver: true,
+          }),
+          Animated.timing(sparkle.scale, {
+            toValue: 0,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(sparkle.opacity, {
+          toValue: 0,
+          duration: 800,
+          delay: index * 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(sparkle.rotation, {
+          toValue: 360,
+          duration: 800,
+          delay: index * 50,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+
+    // Clear sparkles after animation
+    setTimeout(() => {
+      setSparkles([]);
+    }, 1500);
+  };
+
+  // Generate table data for export
+  const generateTableData = () => {
+    const sortedVotes = Object.entries(votes).sort(([a], [b]) => a.localeCompare(b));
+    
+    // Create formatted table string
+    let tableData = "BIHAR ELECTION VOTING DATA\n";
+    tableData += "=" + "=".repeat(70) + "\n\n";
+    tableData += "Sr. | Constituency                    | Voted Party                     | Status\n";
+    tableData += "----|--------------------------------|---------------------------------|--------\n";
+    
+    sortedVotes.forEach(([constituency, partyCode], index) => {
+      const party = PARTIES[partyCode];
+      const sr = String(index + 1).padEnd(3);
+      const constName = constituency.padEnd(30);
+      const partyInfo = `${partyCode} - ${party.name}`.padEnd(31);
+      const status = lockedVotes[constituency] ? 'LOCKED' : 'UNLOCKED';
+      
+      tableData += `${sr} | ${constName} | ${partyInfo} | ${status}\n`;
+    });
+    
+    tableData += "\n" + "=".repeat(70) + "\n";
+    tableData += `Total Constituencies: ${sortedVotes.length}\n`;
+    tableData += `Locked Votes: ${Object.keys(lockedVotes).filter(key => lockedVotes[key]).length}\n`;
+    tableData += `Total Coins Earned: ${coins}\n`;
+    tableData += `Generated: ${new Date().toLocaleString()}\n`;
+    
+    return tableData;
   };
 
   const castVote = (partyCode) => {
     if (selectedConstituency) {
-      console.log('Casting vote:', partyCode, 'for:', selectedConstituency.name);
+      const previousVote = votes[selectedConstituency];
       
-      const voteKey = selectedConstituency.type === 'assembly' 
-        ? `assembly_${selectedConstituency.id}` 
-        : `district_${selectedConstituency.id}`;
-      
-      const previousVote = selectedConstituency.type === 'assembly' 
-        ? assemblyVotes[voteKey] 
-        : votes[selectedConstituency.id];
-      
-      if (selectedConstituency.type === 'assembly') {
-        const newAssemblyVotes = { ...assemblyVotes };
-        newAssemblyVotes[voteKey] = partyCode;
-        setAssemblyVotes(newAssemblyVotes);
-      } else {
-        const newVotes = { ...votes };
-        newVotes[selectedConstituency.id] = partyCode;
-        setVotes(newVotes);
-      }
+      // Update votes
+      const newVotes = { ...votes };
+      newVotes[selectedConstituency] = partyCode;
+      setVotes(newVotes);
 
+      // Update vote counts
       const newCounts = { ...voteCounts };
       if (previousVote) {
         newCounts[previousVote] = Math.max(0, newCounts[previousVote] - 1);
@@ -562,96 +347,144 @@ export default function BiharVotingMap() {
       newCounts[partyCode] = newCounts[partyCode] + 1;
       setVoteCounts(newCounts);
 
-      const coinReward = previousVote ? 5 : (selectedConstituency.type === 'assembly' ? 15 : 10);
-      setCoins(prev => prev + coinReward);
+      // Award coins (5 coins for new vote, 3 for changing vote)
+      const coinsEarned = previousVote ? 3 : 5;
+      setCoins(prev => prev + coinsEarned);
 
-      animateCoinWallet();
-      createCoinAnimation();
+      // Create sparkle effect
+      createSparkles();
 
       setShowVotingModal(false);
       setSelectedConstituency(null);
-
-      const constituencyType = selectedConstituency.type === 'assembly' ? 'Assembly' : 'District';
-      const constituencyName = selectedConstituency.type === 'assembly' 
-        ? `${selectedConstituency.name} (${selectedConstituency.parentDistrict})`
-        : selectedConstituency.name;
+      setSelectedArea(null);
 
       Alert.alert(
-        'Vote Cast Successfully!', 
-        `Your vote for ${PARTIES[partyCode].name} in ${constituencyName} ${constituencyType} has been recorded.\n\n🪙 +${coinReward} coins earned!`,
-        [{ text: 'Awesome!' }]
+        '🎉 Vote Cast Successfully!', 
+        `Your vote for ${PARTIES[partyCode].name} in ${selectedConstituency} has been recorded.\n\n💰 You earned ${coinsEarned} coins!\n\n🔓 You can lock this vote to make it permanent.`,
+        [{ text: 'OK' }]
       );
     }
   };
 
-  const getConstituencyColor = (constituencyId) => {
-    const votedParty = votes[constituencyId];
-    if (votedParty) {
-      return PARTIES[votedParty].color;
+  const handleLockVote = (constituency) => {
+    if (!votes[constituency]) {
+      Alert.alert(
+        'No Vote Cast',
+        'Please cast your vote first before locking it.',
+        [{ text: 'OK' }]
+      );
+      return;
     }
-    return '#FFFFFF';
+
+    if (lockedVotes[constituency]) {
+      Alert.alert(
+        'Already Locked',
+        'This vote is already locked and cannot be changed.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    setPendingLockConstituency(constituency);
+    setShowLockConfirmModal(true);
   };
 
-  const getAssemblyColor = (assemblyId) => {
-    const voteKey = `assembly_${assemblyId}`;
-    const votedParty = assemblyVotes[voteKey];
-    if (votedParty) {
-      return PARTIES[votedParty].color;
+  const confirmLockVote = () => {
+    if (pendingLockConstituency) {
+      const newLockedVotes = { ...lockedVotes };
+      newLockedVotes[pendingLockConstituency] = true;
+      setLockedVotes(newLockedVotes);
+
+      // Award bonus coins for locking
+      setCoins(prev => prev + 10);
+
+      Alert.alert(
+        '🔒 Vote Locked Successfully!',
+        `Your vote for ${pendingLockConstituency} is now permanently locked.\n\n💰 You earned 10 bonus coins for locking your vote!`,
+        [{ text: 'OK' }]
+      );
+
+      setShowLockConfirmModal(false);
+      setPendingLockConstituency(null);
     }
-    return '#FFFFFF';
+  };
+
+  const getAreaColor = (area) => {
+    // Get constituencies for this area
+    const constituencies = AREA_CONSTITUENCIES[area] || [];
+    const votedConstituencies = constituencies.filter(constituency => votes[constituency]);
+    const lockedConstituencies = constituencies.filter(constituency => lockedVotes[constituency]);
+    
+    if (lockedConstituencies.length > 0) {
+      return '#FFD700'; // Gold for locked constituencies
+    } else if (votedConstituencies.length === 0) {
+      return '#FFFFFF'; // White for no votes
+    } else if (votedConstituencies.length === constituencies.length) {
+      return '#90EE90'; // Light green for all constituencies voted
+    } else {
+      return '#FFE4B5'; // Light orange for partial voting
+    }
   };
 
   const resetVotes = () => {
-    Alert.alert(
-      'Reset All Votes',
-      'Are you sure you want to reset all votes? This will also reset your coins.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Reset', 
-          style: 'destructive',
-          onPress: () => {
-            setVotes({});
-            setAssemblyVotes({});
-            setCoins(0);
-            const initialCounts = {};
-            Object.keys(PARTIES).forEach(party => {
-              initialCounts[party] = 0;
-            });
-            setVoteCounts(initialCounts);
-            
-            scale.setValue(1);
-            translateX.setValue(0);
-            translateY.setValue(0);
-            setLastScale(1);
-            setLastOffset({ x: 0, y: 0 });
-          }
-        }
-      ]
-    );
-  };
-
-  const resetZoom = () => {
-    Animated.parallel([
-      Animated.timing(scale, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateX, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    const lockedCount = Object.keys(lockedVotes).filter(key => lockedVotes[key]).length;
     
-    setLastScale(1);
-    setLastOffset({ x: 0, y: 0 });
+    if (lockedCount > 0) {
+      Alert.alert(
+        'Cannot Reset',
+        `You have ${lockedCount} locked vote(s) that cannot be reset. Only unlocked votes can be cleared.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Reset Unlocked Only', 
+            onPress: () => {
+              // Only reset unlocked votes
+              const newVotes = {};
+              const newCounts = {};
+              
+              // Keep locked votes
+              Object.keys(votes).forEach(constituency => {
+                if (lockedVotes[constituency]) {
+                  newVotes[constituency] = votes[constituency];
+                }
+              });
+              
+              // Recalculate vote counts
+              Object.keys(PARTIES).forEach(party => {
+                newCounts[party] = 0;
+              });
+              
+              Object.values(newVotes).forEach(partyCode => {
+                newCounts[partyCode] = (newCounts[partyCode] || 0) + 1;
+              });
+              
+              setVotes(newVotes);
+              setVoteCounts(newCounts);
+            }
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Reset All Votes',
+        'Are you sure you want to reset all votes? This action cannot be undone.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Reset', 
+            style: 'destructive',
+            onPress: () => {
+              setVotes({});
+              const initialCounts = {};
+              Object.keys(PARTIES).forEach(party => {
+                initialCounts[party] = 0;
+              });
+              setVoteCounts(initialCounts);
+            }
+          }
+        ]
+      );
+    }
   };
 
   if (loading) {
@@ -665,42 +498,106 @@ export default function BiharVotingMap() {
 
   return (
     <View style={styles.container}>
-      {/* Header with Coin Wallet */}
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Bihar Election Map</Text>
-        <View style={styles.headerButtons}>
-          <Animated.View style={[styles.coinWallet, { transform: [{ scale: coinWalletScale }] }]}>
-            <Text style={styles.coinText}>🪙 {coins}</Text>
-          </Animated.View>
-          <TouchableOpacity style={styles.resetButton} onPress={resetVotes}>
-            <Text style={styles.resetButtonText}>Reset All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.homeButton} onPress={resetZoom}>
-            <Text style={styles.homeButtonText}>🏠</Text>
-          </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <View style={styles.lockStatsContainer}>
+            <Text style={styles.lockStatsText}>
+              🔒 {Object.keys(lockedVotes).filter(key => lockedVotes[key]).length} Locked
+            </Text>
+          </View>
+          <View style={styles.coinContainer}>
+            <Text style={styles.coinText}>💰 {coins}</Text>
+          </View>
         </View>
       </View>
 
       {/* Vote Summary */}
       <View style={styles.summaryContainer}>
-        <View style={styles.summaryRow}>
-          {Object.entries(PARTIES).map(([code, party]) => (
-            <View key={code} style={styles.summaryItem}>
-              <View style={[styles.colorBox, { backgroundColor: party.color }]} />
-              <Text style={styles.summaryText}>{code}: {voteCounts[code] || 0}</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.summaryRow}>
+            {Object.entries(PARTIES).map(([code, party]) => (
+              <View key={code} style={styles.summaryItem}>
+                <View style={[styles.colorBox, { backgroundColor: party.color }]} />
+                <Text style={styles.summaryText}>{code}: {voteCounts[code] || 0}</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Voting History Table - Always Visible with Two Columns */}
+      {Object.keys(votes).length > 0 && (
+        <View style={styles.votingTableSection}>
+          <Text style={styles.tableTitle}>📊 Voting History ({Object.keys(votes).length} votes)</Text>
+          <ScrollView style={styles.tableScrollContainer}>
+            <View style={styles.tableContainer}>
+              {/* Table Header */}
+              <View style={styles.tableHeader}>
+                <Text style={[styles.tableHeaderText, styles.constituencyColumnWide]}>Constituency</Text>
+                <Text style={[styles.tableHeaderText, styles.votedPartyColumn]}>Voted Party</Text>
+                <Text style={[styles.tableHeaderText, styles.actionColumn]}>Action</Text>
+              </View>
+              
+              {/* Table Rows */}
+              <ScrollView style={styles.tableBodyContainer}>
+                {Object.entries(votes)
+                  .sort(([a], [b]) => a.localeCompare(b))
+                  .map(([constituency, partyCode], index) => {
+                    const party = PARTIES[partyCode];
+                    const isLocked = lockedVotes[constituency];
+                    return (
+                      <View 
+                        key={constituency} 
+                        style={[
+                          styles.tableRow,
+                          index % 2 === 0 ? styles.evenRow : styles.oddRow,
+                          isLocked && styles.lockedRow
+                        ]}
+                      >
+                        <Text style={[styles.tableCellText, styles.constituencyColumnWide]}>
+                          {constituency}
+                        </Text>
+                        <View style={[styles.tableCell, styles.votedPartyColumn]}>
+                          <View style={styles.partyDisplayContainer}>
+                            <View 
+                              style={[
+                                styles.partyColorDot, 
+                                { backgroundColor: party.color }
+                              ]} 
+                            />
+                            <View style={styles.partyTextContainer}>
+                              <Text style={styles.partyCodeText}>{partyCode}</Text>
+                              <Text style={styles.partyNameText}>{party.name}</Text>
+                            </View>
+                          </View>
+                        </View>
+                        <View style={[styles.tableCell, styles.actionColumn]}>
+                          {isLocked ? (
+                            <View style={styles.lockedIndicator}>
+                              <Text style={styles.lockedText}>🔒</Text>
+                            </View>
+                          ) : (
+                            <TouchableOpacity
+                              style={styles.lockButton}
+                              onPress={() => handleLockVote(constituency)}
+                            >
+                              <Text style={styles.lockButtonText}>🔓 Lock</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      </View>
+                    );
+                  })
+                }
+              </ScrollView>
             </View>
-          ))}
+          </ScrollView>
         </View>
-      </View>
+      )}
 
-      {/* Instructions */}
-      <View style={styles.instructionsContainer}>
-        <Text style={styles.instructionsText}>
-          📍 Tap districts on map • Pinch to zoom • Drag to pan • Vote for bonus coins!
-        </Text>
-      </View>
-
-      {/* Map with Gesture Handling */}
+      {/* Map */}
       <View style={styles.mapContainer} {...panResponder.panHandlers}>
         <Animated.View
           style={[
@@ -720,102 +617,96 @@ export default function BiharVotingMap() {
                 <Path
                   key={idx}
                   d={item.path}
-                  fill={getConstituencyColor(item.id)}
+                  fill={getAreaColor(item.area)}
                   stroke="#264653"
-                  strokeWidth={0.8}
-                  onPress={() => handlePathPress(item)}
+                  strokeWidth={0.5}
+                  onPress={() => handleAreaPress(item)}
                 />
               ))}
             </G>
           </Svg>
         </Animated.View>
 
-        {/* Coin Animation Overlay */}
-        {animatedCoins.map((coin) => (
-          <AnimatedCoin
-            key={coin.id}
-            x={coin.x}
-            y={coin.y}
-            delay={coin.delay}
-          />
+        {/* Sparkle Effects */}
+        {sparkles.map((sparkle) => (
+          <Animated.View
+            key={sparkle.id}
+            style={[
+              styles.sparkle,
+              {
+                left: sparkle.x,
+                top: sparkle.y,
+                transform: [
+                  { scale: sparkle.scale },
+                  { 
+                    rotate: sparkle.rotation.interpolate({
+                      inputRange: [0, 360],
+                      outputRange: ['0deg', '360deg'],
+                    })
+                  }
+                ],
+                opacity: sparkle.opacity,
+              },
+            ]}
+          >
+            <Text style={styles.sparkleText}>✨</Text>
+          </Animated.View>
         ))}
       </View>
 
-      {/* District Assembly Modal */}
+      {/* Area Selection Modal */}
       <Modal
-        visible={showDistrictModal}
+        visible={showAreaModal}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setShowDistrictModal(false)}
+        onRequestClose={() => setShowAreaModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>
-              {selectedDistrict?.name} District
+              Select Constituency
             </Text>
             <Text style={styles.modalSubtitle}>
-              Assembly Constituencies ({selectedDistrict?.assemblies?.length || 0})
+              {selectedArea} Area
             </Text>
-            
-            <View style={styles.districtInfo}>
-              <Text style={styles.districtInfoText}>
-                💼 Total Assemblies: {selectedDistrict?.assemblies?.length || 0}
-              </Text>
-              <Text style={styles.districtInfoText}>
-                👥 Total Voters: {selectedDistrict?.assemblies?.reduce((sum, assembly) => sum + assembly.voters, 0).toLocaleString()}
-              </Text>
-            </View>
 
-            <ScrollView style={styles.assemblyList} showsVerticalScrollIndicator={false}>
-              {selectedDistrict?.assemblies?.map((assembly) => (
+            <FlatList
+              data={AREA_CONSTITUENCIES[selectedArea] || []}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
                 <TouchableOpacity
-                  key={assembly.id}
                   style={[
-                    styles.assemblyItem,
-                    { backgroundColor: getAssemblyColor(assembly.id) || '#f9f9f9' }
+                    styles.constituencyButton,
+                    votes[item] && styles.votedConstituency,
+                    lockedVotes[item] && styles.lockedConstituencyButton
                   ]}
-                  onPress={() => handleAssemblyPress(assembly)}
+                  onPress={() => handleConstituencySelect(item)}
                 >
-                  <View style={styles.assemblyHeader}>
-                    <Text style={styles.assemblyName}>{assembly.name}</Text>
-                    <Text style={styles.assemblyCode}>#{assembly.id}</Text>
+                  <View style={styles.constituencyRow}>
+                    <Text style={styles.constituencyName}>{item}</Text>
+                    {lockedVotes[item] && (
+                      <Text style={styles.lockIcon}>🔒</Text>
+                    )}
                   </View>
-                  <Text style={styles.assemblyVoters}>
-                    👥 {assembly.voters.toLocaleString()} voters
-                  </Text>
-                  {assemblyVotes[`assembly_${assembly.id}`] && (
-                    <View style={styles.voteStatus}>
-                      <Text style={styles.voteStatusText}>
-                        ✅ Voted: {PARTIES[assemblyVotes[`assembly_${assembly.id}`]].name}
+                  {votes[item] && (
+                    <View style={styles.votedIndicator}>
+                      <Text style={styles.votedText}>
+                        ✓ {PARTIES[votes[item]].name}
+                        {lockedVotes[item] && ' (LOCKED)'}
                       </Text>
                     </View>
                   )}
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              )}
+              style={styles.constituencyList}
+            />
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.voteDistrictButton}
-                onPress={() => {
-                  setSelectedConstituency({
-                    ...selectedDistrict,
-                    type: 'district'
-                  });
-                  setShowDistrictModal(false);
-                  setShowVotingModal(true);
-                }}
-              >
-                <Text style={styles.voteDistrictButtonText}>Vote for District</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setShowDistrictModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowAreaModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -833,49 +724,32 @@ export default function BiharVotingMap() {
               Cast Your Vote
             </Text>
             <Text style={styles.modalSubtitle}>
-              {selectedConstituency?.type === 'assembly' 
-                ? `${selectedConstituency?.name} Assembly (${selectedConstituency?.parentDistrict})`
-                : `${selectedConstituency?.name} District`
-              }
+              {selectedConstituency}
             </Text>
             
-            <View style={styles.rewardInfo}>
-              <Text style={styles.rewardText}>
-                🪙 Earn {
-                  (selectedConstituency?.type === 'assembly' ? assemblyVotes[`assembly_${selectedConstituency?.id}`] : votes[selectedConstituency?.id]) 
-                    ? '5' 
-                    : (selectedConstituency?.type === 'assembly' ? '15' : '10')
-                } coins for voting!
-              </Text>
-            </View>
-            
-            {selectedConstituency?.voters && (
-              <View style={styles.voterInfo}>
-                <Text style={styles.voterInfoText}>
-                  👥 {selectedConstituency.voters.toLocaleString()} eligible voters
-                </Text>
-              </View>
-            )}
-            
-            {((selectedConstituency?.type === 'assembly' && assemblyVotes[`assembly_${selectedConstituency?.id}`]) ||
-              (selectedConstituency?.type !== 'assembly' && votes[selectedConstituency?.id])) && (
+            {votes[selectedConstituency] && (
               <Text style={styles.currentVoteText}>
-                Current Vote: {PARTIES[
-                  selectedConstituency?.type === 'assembly' 
-                    ? assemblyVotes[`assembly_${selectedConstituency.id}`]
-                    : votes[selectedConstituency.id]
-                ].name}
+                Current Vote: {PARTIES[votes[selectedConstituency]].name}
               </Text>
             )}
 
-            <View style={styles.partyList}>
+            <View style={styles.coinRewardText}>
+              <Text style={styles.rewardText}>
+                💰 Earn {votes[selectedConstituency] ? '3' : '5'} coins for voting!
+              </Text>
+              <Text style={styles.rewardSubText}>
+                🔒 Lock your vote later to earn 10 bonus coins!
+              </Text>
+            </View>
+
+            <ScrollView style={styles.partyList}>
               {Object.entries(PARTIES).map(([code, party]) => (
                 <TouchableOpacity
                   key={code}
                   style={[
                     styles.partyButton,
                     { borderColor: party.color },
-                    ((selectedConstituency?.type === 'assembly' ? assemblyVotes[`assembly_${selectedConstituency?.id}`] : votes[selectedConstituency?.id]) === code) && styles.selectedParty
+                    votes[selectedConstituency] === code && styles.selectedParty
                   ]}
                   onPress={() => castVote(code)}
                 >
@@ -886,7 +760,7 @@ export default function BiharVotingMap() {
                   </View>
                 </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
 
             <TouchableOpacity
               style={styles.cancelButton}
@@ -894,6 +768,45 @@ export default function BiharVotingMap() {
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Lock Confirmation Modal */}
+      <Modal
+        visible={showLockConfirmModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLockConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContainer}>
+            <Text style={styles.confirmTitle}>🔒 Lock Vote</Text>
+            <Text style={styles.confirmMessage}>
+              Are you sure you want to lock your vote for {pendingLockConstituency}?
+            </Text>
+            <Text style={styles.confirmSubMessage}>
+              Once locked, you cannot change this vote again. You will earn 10 bonus coins for locking.
+            </Text>
+            
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity
+                style={styles.cancelConfirmButton}
+                onPress={() => {
+                  setShowLockConfirmModal(false);
+                  setPendingLockConstituency(null);
+                }}
+              >
+                <Text style={styles.cancelConfirmText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.lockConfirmButton}
+                onPress={confirmLockVote}
+              >
+                <Text style={styles.lockConfirmText}>🔒 Lock Vote</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -930,46 +843,60 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
-  headerButtons: {
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  coinWallet: {
+  lockStatsContainer: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  lockStatsText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  votingTableSection: {
+    backgroundColor: 'white',
+    margin: 10,
+    borderRadius: 10,
+    padding: 15,
+    maxHeight: 300,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tableTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#264653',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  tableScrollContainer: {
+    maxHeight: 250,
+  },
+  tableBodyContainer: {
+    maxHeight: 200,
+  },
+  coinContainer: {
     backgroundColor: '#FFD700',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   coinText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
-  },
-  resetButton: {
-    backgroundColor: '#e76f51',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 5,
-  },
-  resetButtonText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  homeButton: {
-    backgroundColor: '#2a9d8f',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 5,
-  },
-  homeButtonText: {
-    fontSize: 14,
   },
   summaryContainer: {
     backgroundColor: 'white',
@@ -978,7 +905,6 @@ const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row',
     paddingHorizontal: 10,
-    flexWrap: 'wrap',
   },
   summaryItem: {
     flexDirection: 'row',
@@ -996,19 +922,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  instructionsContainer: {
-    backgroundColor: '#e9f7ef',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  instructionsText: {
-    fontSize: 12,
-    color: '#2d5016',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
   mapContainer: {
     flex: 1,
     backgroundColor: '#f0f8ff',
@@ -1020,12 +933,15 @@ const styles = StyleSheet.create({
   svg: {
     backgroundColor: 'transparent',
   },
-  coin: {
+  sparkle: {
     position: 'absolute',
-    zIndex: 1000,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  coinText: {
-    fontSize: 24,
+  sparkleText: {
+    fontSize: 20,
   },
   modalOverlay: {
     flex: 1,
@@ -1054,112 +970,79 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: '#666',
   },
-  districtInfo: {
-    backgroundColor: '#e8f5e8',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  districtInfoText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2d5016',
-    marginBottom: 4,
-  },
-  assemblyList: {
+  constituencyList: {
     maxHeight: 300,
-    marginBottom: 15,
   },
-  assemblyItem: {
-    padding: 12,
-    marginVertical: 4,
-    borderRadius: 8,
+  constituencyButton: {
+    padding: 15,
+    marginVertical: 5,
     borderWidth: 1,
     borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#fafafa',
   },
-  assemblyHeader: {
+  votedConstituency: {
+    backgroundColor: '#e8f5e8',
+    borderColor: '#4CAF50',
+  },
+  lockedConstituencyButton: {
+    backgroundColor: '#fff8dc',
+    borderColor: '#FFD700',
+    borderWidth: 2,
+  },
+  constituencyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
   },
-  assemblyName: {
+  constituencyName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#264653',
     flex: 1,
   },
-  assemblyCode: {
+  lockIcon: {
+    fontSize: 18,
+    marginLeft: 10,
+  },
+  votedIndicator: {
+    marginTop: 5,
+  },
+  votedText: {
     fontSize: 12,
-    color: '#666',
+    color: '#4CAF50',
     fontWeight: '500',
-  },
-  assemblyVoters: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 4,
-  },
-  voteStatus: {
-    backgroundColor: '#d4edda',
-    padding: 4,
-    borderRadius: 4,
-    marginTop: 4,
-  },
-  voteStatusText: {
-    fontSize: 11,
-    color: '#155724',
-    fontWeight: '500',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  voteDistrictButton: {
-    flex: 1,
-    backgroundColor: '#264653',
-    padding: 12,
-    borderRadius: 8,
-  },
-  voteDistrictButtonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  rewardInfo: {
-    backgroundColor: '#FFD700',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  rewardText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  voterInfo: {
-    backgroundColor: '#e3f2fd',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  voterInfoText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1565c0',
   },
   currentVoteText: {
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
     padding: 8,
     backgroundColor: '#f0f0f0',
     borderRadius: 5,
     fontWeight: '500',
   },
+  coinRewardText: {
+    backgroundColor: '#FFF8DC',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  rewardText: {
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#B8860B',
+  },
+  rewardSubText: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#B8860B',
+    marginTop: 3,
+  },
   partyList: {
-    maxHeight: 350,
+    maxHeight: 250,
   },
   partyButton: {
     flexDirection: 'row',
@@ -1197,12 +1080,180 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginTop: 15,
-    flex: 1,
   },
   cancelButtonText: {
     textAlign: 'center',
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+  },
+  // Updated table styles for three columns
+  tableContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#264653',
+    paddingVertical: 12,
+  },
+  tableHeaderText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingHorizontal: 5,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    alignItems: 'center',
+  },
+  evenRow: {
+    backgroundColor: '#f8f9fa',
+  },
+  oddRow: {
+    backgroundColor: 'white',
+  },
+  lockedRow: {
+    backgroundColor: '#fff8dc',
+  },
+  tableCell: {
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingHorizontal: 5,
+  },
+  tableCellText: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '500',
+  },
+  // Three column layout
+  constituencyColumnWide: {
+    flex: 1.3,
+    paddingHorizontal: 8,
+  },
+  votedPartyColumn: {
+    flex: 1.5,
+    paddingHorizontal: 5,
+  },
+  actionColumn: {
+    flex: 0.8,
+    paddingHorizontal: 5,
+  },
+  // Party display in table
+  partyDisplayContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  partyColorDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  partyTextContainer: {
+    flex: 1,
+  },
+  partyCodeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#264653',
+  },
+  partyNameText: {
+    fontSize: 10,
+    color: '#666',
+    marginTop: 1,
+  },
+  // Lock button and indicator
+  lockButton: {
+    backgroundColor: '#2a9d8f',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    minWidth: 50,
+  },
+  lockButtonText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  lockedIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 50,
+  },
+  lockedText: {
+    fontSize: 16,
+  },
+  // Lock confirmation modal
+  confirmModalContainer: {
+    backgroundColor: 'white',
+    margin: 30,
+    borderRadius: 15,
+    padding: 25,
+    width: '85%',
+    alignItems: 'center',
+  },
+  confirmTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#264653',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  confirmMessage: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+    lineHeight: 22,
+  },
+  confirmSubMessage: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 20,
+  },
+  confirmButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  cancelConfirmButton: {
+    backgroundColor: '#ccc',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 100,
+  },
+  cancelConfirmText: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  lockConfirmButton: {
+    backgroundColor: '#e76f51',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 100,
+  },
+  lockConfirmText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
