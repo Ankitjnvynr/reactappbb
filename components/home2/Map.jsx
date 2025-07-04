@@ -29,17 +29,48 @@ const PARTIES = {
 
 // Mock data for areas and their constituencies
 const AREA_CONSTITUENCIES = {
-  'Patna': ['Patna Sahib', 'Patna West', 'Patna East', 'Patna North'],
-  'Gaya': ['Gaya Town', 'Belaganj', 'Bodh Gaya', 'Aurangabad'],
-  'Muzaffarpur': ['Muzaffarpur East', 'Muzaffarpur West', 'Sitamarhi', 'Sheohar'],
-  'Bhagalpur': ['Bhagalpur East', 'Bhagalpur West', 'Nathnagar', 'Sultanganj'],
-  'Darbhanga': ['Darbhanga Rural', 'Darbhanga', 'Laherisarai', 'Benipur'],
-  'Purnia': ['Purnia East', 'Purnia West', 'Kasba', 'Banmankhi'],
-  'Begusarai': ['Begusarai', 'Sahebpur Kamal', 'Matihani', 'Teghra'],
-  'Katihar': ['Katihar', 'Kadwa', 'Balrampur', 'Pranpur'],
-  'Munger': ['Munger', 'Jamalpur', 'Lakhisarai', 'Suryagarha'],
-  'Saharsa': ['Saharsa', 'Mahishi', 'Simri Bakhtiarpur', 'Sonbarsa']
+  "Valmiki Nagar": ["Valmiki Nagar", "Ramnagar (SC)", "Narkatiaganj", "Bagaha", "Lauriya", "Nautan"],
+  "Paschim Champaran": ["Nautan", "Chanpatia", "Bettiah", "Raxaul", "Sugauli", "Narkatiya"],
+  "Purvi Champaran": ["Harsidhi (SC)", "Govindganj", "Kesaria", "Kalyanpur", "Pipra", "Motihari"],
+  "Sheohar": ["Sheohar", "Riga", "Bathnaha (SC)", "Parihar", "Sursand", "Bajpatti"],
+  "Sitamarhi": ["Sitamarhi", "Runnisaidpur", "Belsand", "Harlakhi", "Benipatti", "Khajauli"],
+  "Madhubani": ["Bisfi", "Madhubani", "Rajnagar (SC)", "Jhanjharpur", "Phulparas", "Laukaha"],
+  "Jhanjharpur": ["Jhanjharpur", "Phulparas", "Laukaha", "Nirmali", "Pipra (Supaul)", "Supaul"],
+  "Supaul": ["Pipra (Supaul)", "Supaul", "Triveniganj (SC)", "Chhatapur", "Narpatganj", "Raniganj (SC)"],
+  "Araria": ["Forbesganj", "Araria", "Jokihat", "Sikti", "Bahadurganj", "Thakurganj"],
+  "Kishanganj": ["Kishanganj", "Kochadhaman", "Amour", "Baisi", "Kasba", "Banmankhi (SC)"],
+  "Katihar": ["Katihar", "Kadwa", "Balrampur", "Pranpur", "Manihari (ST)", "Barari"],
+  "Purnia": ["Kasba", "Banmankhi (SC)", "Rupauli", "Dhamdaha", "Purnia", "Madhepura"],
+  "Madhepura": ["Madhepura", "Singheshwar (SC)", "Bihariganj", "Alamnagar"],
+  "Darbhanga": ["Kusheshwar Asthan (SC)", "Gaura Bauram", "Benipur", "Alinagar", "Darbhanga Rural", "Darbhanga"],
+  "Muzaffarpur": ["Gaighat", "Aurai", "Minapur", "Bochahan (SC)", "Sakra (SC)", "Kurhani", "Muzaffarpur"],
+  "Vaishali": ["Muzaffarpur (Rural)", "Sahebganj", "Mahua", "Bachhwara", "Phulparas", "Vaishali"],
+  "Gopalganj (SC)": ["Gopalganj", "Uchkagaon", "Kuchaikote", "Bhoreyya", "Pachdewa", "Harsidhi"],
+  "Siwan": ["Siwan", "Goriakothi", "Gopalganj Rural", "Zira", "Khirhari", "Tarwara"],
+  "Maharajganj": ["Maharajganj", "Sikta", "Chandwara", "Chakia", "Bansgaon", "Belari"],
+  "Saran": ["Saran", "Marhaura", "Amnour", "Pipra", "Chapra", "Dighwara", "Digha"],
+  "Hajipur (SC)": ["Hajipur (SC)", "Rajiv Nagar", "Mahnar", "Jandaha", "Laheriasarai", "Samastipur"],
+  "Ujiarpur": ["Ujiarpur", "Sarairanjan", "Morwa", "Chehrakala", "Phulwari", "Paliganj"],
+  "Samastipur (SC)": ["Samastipur (SC)", "Rosera", "Singhia", "Phulparas", "Bibhutipur", "Motuha"],
+  "Begusarai": ["Cheria‑Bariarpur", "Bachhwara", "Teghra", "Matihani", "Sahebpur Kamal", "Begusarai", "Bakhri (SC)"],
+  "Khagaria": ["Khagaria", "Beldaur", "Parbatta", "Bihpur"],
+  "Bhagalpur": ["Bihpur", "Pirpainti (SC)", "Kahalgaon", "Bhagalpur", "Sultanganj", "Nathnagar"],
+  "Banka": ["Amarpur", "Dhauraiya (SC)", "Banka"],
+  "Munger": ["Tarapur", "Munger", "Jamalpur", "Suryagarha", "Lakhisarai", "Sheikhpura"],
+  "Nalanda": ["Asthawan", "Biharsharif", "Rajgir (SC)", "Islampur", "Hilsa", "Nalanda", "Harnaut"],
+  "Patna Sahib": ["Bakhtiarpur", "Digha", "Bankipur", "Kumhrar", "Patna Sahib", "Fatuha"],
+  "Pataliputra": ["Danapur", "Maner", "Phulwari (SC)", "Masaurhi (SC)", "Paliganj", "Bikram"],
+  "Arrah": ["Sandesh", "Barhara", "Arrah", "Agiaon (SC)", "Tarari", "Jagdishpur", "Shahpur", "Brahampur"],
+  "Buxar": ["Buxar", "Dumraon", "Rajpur (SC)", "Ramgarh", "Mohania (SC)", "Bhabua", "Chainpur", "Chenari (SC)", "Sasaram"],
+  "Sasaram (SC)": ["Sasaram", "Kargahar", "Dinara", "Nokha", "Dehri", "Karakat"],
+  "Karakat": ["Karakat", "Arwal", "Kurtha", "Jehanabad", "Ghosi", "Makhdumpur (SC)", "Goh", "Obra", "Nabinagar", "Kutumba (SC)"],
+  "Jehanabad": ["Jehanabad", "Ghosi", "Makhdumpur (SC)", "Goh", "Obra", "Nabinagar", "Kutumba (SC)"],
+  "Aurangabad": ["Aurangabad", "Rafiganj", "Gurua", "Sherghati", "Imamganj (SC)", "Barachatti (SC)"],
+  "Gaya (SC)": ["Barachatti (SC)", "Bodh Gaya (SC)", "Gaya Town", "Tikari", "Belaganj", "Atri", "Wazirganj"],
+  "Nawada": ["Rajauli (SC)", "Hisua", "Nawada", "Gobindpur", "Warsaliganj", "Sikandra (SC)"],
+  "Jamui (SC)": ["Jamui", "Jhajha", "Chakai"]
 };
+
 
 export default function BiharVotingMap() {
   const [paths, setPaths] = useState([]);
